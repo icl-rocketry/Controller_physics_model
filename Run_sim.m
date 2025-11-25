@@ -1,0 +1,17 @@
+function Run_sim(y_I, t_I, config)
+y = y_I; t = t_I;
+steps = (config.T - t_I) / config.dt;
+y_array = zeros(steps, 14);
+t_array = zeros(steps);
+y_array(0,:) = y; t_array(0) = t_I;
+while (t < config.T && y(3) >= 0)
+    control_signal = controller(y);
+    y_ = RK4_step(t, y, config.dt, control_signal);
+    t = t + dt;
+
+    y_array(step, :) = y_;
+    t_array(step) = t;
+    y = y_;
+end
+end
+
