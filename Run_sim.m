@@ -1,4 +1,4 @@
-function Run_sim(y_I, t_I, config)
+function [y_array, t_array] = Run_sim(y_I, t_I, config)
 y = y_I; t = t_I;
 steps = (config.T - t_I) / config.dt;
 y_array = zeros(steps, 14);
@@ -13,5 +13,6 @@ while (t < config.T && y(3) >= 0)
     t_array(step) = t;
     y = y_;
 end
-end
 
+plot3(y_array(1), y_array(2), y_array(3));
+end
