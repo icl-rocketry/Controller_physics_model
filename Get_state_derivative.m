@@ -8,10 +8,10 @@ F_body = F_thrust_body + F_aero_body;
 tau_body = tau_thrust_body + tau_aero_body;
 inv_J = J ^ -1;
 g = [0; 0; -g0];
-
+ 
 r_dot = v;
-v_dot = (1 / m) * (R_BI * F_body) + g;
-q_dot = Quaternion_derivative(q, w);
+v_dot = (1 / m) * (R_BI * F_body) + g; % F = ma but body forces must be transformed with rotation matrix to move to inertial frame
+q_dot = Quaternion_derivative(q, w); % quaternion derivative taken in body reference frame. Note: this is equivilant to inertial frame w.o the need for transform.
 w_dot = inv_J * (tau_body - cross(w, J .* w));
 m_dot = - norm(F_thrust_body) / (Isp * g0);
 
