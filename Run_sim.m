@@ -1,4 +1,5 @@
 function [y_array, t_array] = Run_sim(y_I, t_I, config)
+[aero_trans_table, aero_rot_table, thrust_table] = LoadAeroTables();
 y = y_I; t = t_I;
 steps = (config.T - t_I) / config.dt;
 y_array = zeros(steps, 14);
