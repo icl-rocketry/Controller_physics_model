@@ -9,4 +9,3 @@ Omega = [0 , wz , -wy, wx;
         -wx, -wy, -wz, 0];
 q_dot = 0.5 * (Omega @ q);
 end
-
