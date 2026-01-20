@@ -8,4 +8,47 @@ function [y_, t_] = RK4_step(t, y, dt, control_signal)
     q = y_(7:10); 
     y_(7:10) = q / norm(q);
     t_ = t + dt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 end
