@@ -4,5 +4,6 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(Mach_n, alpha, beta
     C_Y = 0;
     C_l = 0;
     C_m = 0;
+    
     C_n = 0;
 end
