@@ -1,9 +1,9 @@
-function [T_trans, T_rot, T_thrust] = LoadAeroTables()
-    T_trans_raw = readtable("B0000.xlsx");
-    T_rot_raw = readtable("xpitch_B0000.xlsx");
-    T_thrust_raw = readtable("thrust_file");
+function [static_table, dynamic_table, fin_table] = LoadAeroTables()
+    static_table_raw = readtable("B0000.xlsx");
+    dynamic_table_raw = readtable("xpitch_B0000.xlsx");
+    fin_table_raw = readtable("fin_table");
 
-    T_trans = T_trans_raw(:,2:end);
-    T_rot = T_rot_raw(:,2:end);
-    T_thrust = T_thrust_raw(:,2:end);
+    static_table = static_table_raw(:,2:end);
+    dynamic_table = dynamic_table_raw(:,2:end);
+    fin_table = fin_table_raw(:,2:end);
 end
