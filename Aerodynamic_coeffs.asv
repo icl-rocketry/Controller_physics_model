@@ -1,4 +1,4 @@
-function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, alpha_rad, beta_rad, grid_fin_alpha, static_table, dynamic_table, grid_fins_table)
+function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, L_ref, x_cg, alpha_rad, beta_rad, grid_fin_alpha, static_table, dynamic_table, grid_fins_table)
     % Woof
     alpha_deg = rad2deg(alpha_rad);
     beta_deg = rad2deg(beta_rad);
@@ -15,9 +15,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     F_CA = scatteredInterpolant(mach_vector,alpha_vector,CA_vector, 'linear');
     F_CN = scatteredInterpolant(mach_vector,alpha_vector,CN_vector, 'linear');
     F_Cm = scatteredInterpolant(mach_vector,alpha_vector,Cm_vector, 'linear');
-    Ca_total = F_CA(Mach_n,alpha_total);
-    Cn_total = F_CN(Mach_n,alpha_total);
-    Cmy_ref = F_Cm(Mach_n,alpha_total);
+    Ca_total = F_CA(Mach_n,total_alpha);
+    Cn_total = F_CN(Mach_n,total_alpha);
+    Cmy_ref = F_Cm(Mach_n,total_alpha);
 
     if abs(Cn_total) < 1e-4
         Cn_safe = F_CN(Mach_n, 0.1);
@@ -35,13 +35,13 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     F_CA = scatteredInterpolant(mach_vector,alpha_vector,CA_vector, 'linear');
     F_CN = scatteredInterpolant(mach_vector,alpha_vector,CN_vector, 'linear');
     F_Cm = scatteredInterpolant(mach_vector,alpha_vector,Cm_vector, 'linear');
-    Caq = F_CA(Mach_n,alpha_total);
-    Cnq = F_CN(Mach_n,alpha_total);
-    Cmq = F_Cm(Mach_n,alpha_total);
+    Caq = F_CA(Mach_n,total_alpha);
+    Cnq = F_CN(Mach_n,total_alpha);
+    Cmq = F_Cm(Mach_n,total_alpha);
     
     if flow_v < 1e-4
         flow_v = 1.0;
-    end 
+    end
    
     q_rad_s = state(12);
     r_rad_s = state(13);
@@ -49,15 +49,15 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     r_bar = (r_rad_s * L_ref) / (2 * flow_v);
     rate_mag = sqrt(q_bar^2 + r_bar^2);
 
-    lever_arm_ratio = (x_cg - x_cp) / L_ref;
+    lever_arm_ratio = (x_cp - x_cg) / L_ref;
 
     % CA (Cx): Axial Force
     Cx_static = Ca_total;
     Cx_dynamic = Caq * rate_mag;
-    C_A = Cx_static + Cx_dynamic
+    C_A = Cx_static + Cx_dynamic;
 
     % CN (Cz): Normal Force
-    Cz_static = - Cn_static_total * deg_ratio_alpha;
+    Cz_static = - Cn_total * deg_ratio_alpha;
     Cz_dynamic = - Cnq * q_bar;
     C_N = Cz_static + Cz_dynamic;
 
@@ -72,19 +72,11 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     
     % Cm: Pitch Torque
     Cm_damping = Cmq * q_bar;
-    Cm_static = Cn_total * lever_arm_ratio ;
+    Cm_static = Cn_total * lever_arm_ratio * deg_ratio_alpha;
     C_m = Cm_static + Cm_damping;
 
     % Cn: Yaw Torque
     Cn_damping = Cmq * r_bar;
-    Cn_static = - Cn_total * deg_ratio_beta
-
-
-
-    Cm_damping = Cmq * q_bar;
-    Cn_damping = Cmq * r_bar;
-    
-    C_l = 0.0; % will be non-zero with addition of fins
-    C_m = C_m_static + Cm_damping;
-    C_n = C_n_static + Cn_damping;
+    Cn_static = - Cn_total * lever_arm_ratio * deg_ratio_beta;
+    C_n = Cn_static + Cn_damping;
 end

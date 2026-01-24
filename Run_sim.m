@@ -1,4 +1,5 @@
 function [y_array, t_array] = Run_sim(y_I, t_I, config)
+rocket_config = struct(mass, 100.0, )
 [aero_trans_table, aero_rot_table, thrust_table] = LoadAeroTables();
 y = y_I; t = t_I;
 steps = (config.T - t_I) / config.dt;
