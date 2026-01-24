@@ -50,6 +50,27 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     rate_mag = sqrt(q_bar^2 + r_bar^2);
 
     lever_arm_ratio = (x_cp - x_cg) / L_ref;
+    
+    %get local gridfin alpha 
+    V_B = state(1:3)';
+    w_B = state(12:14)';
+
+    %gridfin definitions
+    x_gridfin = 3;
+    R_gridfin = 0.5;
+    r_gridfin_1 = [x_gridfin; 0; R ];
+    r_gridfin_2 = [x_gridfin; R_gridfin*cos((2/3)*pi); R_gridfin*sin((2/3)*pi) ];
+    r_gridfin_3 = [x_gridfin; R_gridfin*cos((4/3)*pi); R_gridfin*sin((4/3)*pi) ];
+
+    %V_G_gridfin = T(GB) * ( V_B + w_B * r_gridfin)
+    V_G_1 = [1,0,0; 0, 1, 0 ; 0, 0 , 1] * (V_B + cross(w_B, r_gridfin_1));
+    V_G_2 = [1,0,0; 0, cos((2/3)*pi), sin((2/3)*pi) ; 0, -sin((2/3)*pi) , cos((2/3)*pi)] * (V_B + cross(w_B, r_gridfin_2));
+    V_G_3 = [1,0,0; 0, cos((4/3)*pi), sin((4/3)*pi) ; 0, -sin((4/3)*pi) , cos((2/3)*pi)] * (V_B + cross(w_B, r_gridfin_3));
+
+    alpha_G1 = atan(V_G_1(3)/V_G_1(1));
+    alpha_G2 = atan(V_G_2(3)/V_G_2(1));
+    alpha_G3 = atan(V_G_3(3)/V_G_3(1));
+    
 
     % CA (Cx): Axial Force
     Cx_static = Ca_total;
