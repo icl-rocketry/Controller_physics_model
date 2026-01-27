@@ -1,4 +1,4 @@
-function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, L_ref, x_cg, alpha_rad, beta_rad, grid_fin_alpha, static_table, dynamic_table, grid_fins_table)
+function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, L_ref, x_cg, alpha_rad, beta_rad, grid_fin_alpha, static_table, dynamic_table, grid_fins_table, x_gridfin, R_gridfin)
     % Woof
     alpha_deg = rad2deg(alpha_rad);
     beta_deg = rad2deg(beta_rad);
@@ -56,8 +56,6 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     w_B = state(12:14)';
 
     %gridfin definitions
-    x_gridfin = 3;
-    R_gridfin = 0.5;
     r_gridfin_1 = [x_gridfin; 0; R ];
     r_gridfin_2 = [x_gridfin; R_gridfin*cos((2/3)*pi); R_gridfin*sin((2/3)*pi) ];
     r_gridfin_3 = [x_gridfin; R_gridfin*cos((4/3)*pi); R_gridfin*sin((4/3)*pi) ];
@@ -70,6 +68,11 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     alpha_G1 = atan(V_G_1(3)/V_G_1(1));
     alpha_G2 = atan(V_G_2(3)/V_G_2(1));
     alpha_G3 = atan(V_G_3(3)/V_G_3(1));
+
+    %Coefficients(alpha, M)
+
+
+    %transfer to forcing coefficients in body axes:
     
 
     % CA (Cx): Axial Force
