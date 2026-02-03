@@ -1,0 +1,42 @@
+function [static_table, dynamic_table, fin_table] = LoadAeroTables()
+    static_table_raw = readtable("B0000.xlsx");
+    dynamic_table_raw = readtable("xpitch_B0000.xlsx");
+    fin_table_raw = readtable("fin_table");
+
+    %array definitions:
+    %xpitch: 
+    M_xpitch = dynamic_table_raw(:, 2);
+    alpha_xpitch = dynamic_table_raw(:, 3);
+    CA_xpitch = dynamic_table_raw(:, 4);
+    CFy_xpitch = dynamic_table_raw(:, 6);
+    CN_xpitch = dynamic_table_raw(:,8);
+    CMx_xpitch = dynamic_table_raw(:,10);
+    CMy_xpitch = dynamic_table_raw(:,12);
+    CMz_xpitch = dynamic_table_raw(:,14);
+    CMy_cog_xpitch = dynamic_table_raw(:,16);
+    CMz_cog_xpitch = dynamic_table_raw(:,18);
+
+    %non xpitch:
+    M_static = static_table_raw(:, 2);
+    alpha_static = static_table_raw(:, 3);
+    CA_static = static_table_raw(:, 4);
+    CFy_static = static_table_raw(:, 6);
+    CN_static = static_table_raw(:,8);
+    CMx_static = static_table_raw(:,10);
+    CMy_static = static_table_raw(:,12);
+    CMz_static = static_table_raw(:,14);
+    CMy_cog_static = static_table_raw(:,16);
+    CMz_cog_static = static_table_raw(:,18);
+
+    %xpitch spline coefficients
+
+    spline
+
+
+
+
+
+    static_table = static_table_raw(:,2:end);
+    dynamic_table = dynamic_table_raw(:,2:end);
+    fin_table = fin_table_raw(:,2:end);
+end
