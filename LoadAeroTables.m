@@ -1,4 +1,4 @@
-function [CA_xpitch_spline, CN_xpitch_spline, CMy_xpitch_spline, CA_static_spline, CN_static_spline, CMy_static_spline, CLfit, CDfit] = LoadAeroTables()
+function [aerosplinefits] = LoadAeroTables()
     
     %ROCKET
     static_table_raw = readtable("B0000.xlsx");
@@ -56,7 +56,17 @@ function [CA_xpitch_spline, CN_xpitch_spline, CMy_xpitch_spline, CA_static_splin
     Cdalphaextended = [-flip(CD_alpha_table(:,1)); CD_alpha_table(:,1)];
     Cdextended = [flip(CD_alpha_table(:,2)); CD_alpha_table(:,2)];
 
-    CLfit = spline(Clalphaextended, Clextended);
-    CDfit = spline(Cdalphaextended, Cdextended);
+    CLfit_spline = spline(Clalphaextended, Clextended);
+    CDfit_spline = spline(Cdalphaextended, Cdextended);
+
+    %[CA_xpitch_spline, CN_xpitch_spline, CMy_xpitch_spline, CA_static_spline, CN_static_spline, CMy_static_spline, CLfit, CDfit]
+
+    aerosplinefits = struct("CA_xpitch", CA_xpitch_spline, ...
+        "CN_xpitch", CN_xpitch_spline, ...
+        "CMy_xpitch", CMy_xpitch_spline, ...
+        "CA_static", CA_static_spline, ...
+        "CN_static", CN_static_spline, ...
+        "CLfit", CLfit_spline, ...
+        "CDfit", CDfit_spline);  
 
 end
