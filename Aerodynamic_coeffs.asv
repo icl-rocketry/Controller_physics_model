@@ -1,4 +1,4 @@
-function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, L_ref, x_cg, alpha_rad, beta_rad, grid_fin_alpha, static_table, dynamic_table, grid_fins_table, x_gridfin, R_gridfin, chord_gridfins, aerosplinefits)
+function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, L_ref, x_cg, S_ref, alpha_rad, beta_rad, grid_fin_alpha, static_table, dynamic_table, grid_fins_table, x_gridfin, R_gridfin, chord_gridfins, aerosplinefits)
     % Woof
     alpha_deg = rad2deg(alpha_rad);
     beta_deg = rad2deg(beta_rad);
@@ -88,7 +88,7 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     w_B = state(11:13)';
 
     %gridfin definitions (location of hinge point effectively)
-    r_gridfin_1 = [x_gridfin; 0; R ];
+    r_gridfin_1 = [x_gridfin; 0; R_gridfin ];
     r_gridfin_2 = [x_gridfin; R_gridfin*cos((2/3)*pi); R_gridfin*sin((2/3)*pi) ];
     r_gridfin_3 = [x_gridfin; R_gridfin*cos((4/3)*pi); R_gridfin*sin((4/3)*pi) ];
 
@@ -104,9 +104,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     V_G_3 = [cos(d3), -sin(d3), 0; sin(d3), cos(d3), 0; 0, 0, 1] * V_H_3;
 
     %angles of attack in fin frame
-    alpha_G1 = atan(V_G_1(3)/V_G_1(1));
-    alpha_G2 = atan(V_G_2(3)/V_G_2(1));
-    alpha_G3 = atan(V_G_3(3)/V_G_3(1));
+    alpha_G1 = atan(V_G_1(1)/V_G_1(2)); 
+    alpha_G2 = atan(V_G_2(1)/V_G_2(2));
+    alpha_G3 = atan(V_G_3(1)/V_G_3(2));
 
     %Coefficients(alpha, M):
     CL_G1 = ppval(aerosplinefits.CLfit, alpha_G1);
@@ -117,43 +117,59 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     CD_G2 = ppval(aerosplinefits.CDfit, alpha_G2);
     CD_G3 = ppval(aerosplinefits.CDfit, alpha_G3);
 
-    %REDIMENSIONALISE TO FORCES
-    h = state(3);
-    
+    %redimensionalise to forcess
+    h = state(3); %in m?
+    h0 = 40; %based off of approximate euroc location
+    h = h + h0; 
+    [~,~,~,rho] = atmosisa(h);
+
     qinf_1 = 0.5*rho*norm(V_G_1)^2;
     L_G1 = CL_G1*(qinf_1 * chord_gridfins);
+    D_G1 = CD_G1*(qinf_1 * chord_gridfins);
     
     qinf_2 = 0.5*rho*norm(V_G_2)^2;
     L_G2 = CL_G2*(qinf_2 * chord_gridfins);
+    D_G2 = CD_G2*(qinf_2 * chord_gridfins);
         
-    qinf_1 = 0.5*rho*norm(V_G_3)^2;
-    L_G1 = CL_G1*(qinf_1 * chord_gridfins);
+    qinf_3 = 0.5*rho*norm(V_G_3)^2;
+    L_G3 = CL_G3*(qinf_3 * chord_gridfins);
+    D_G3 = CD_G3*(qinf_3 * chord_gridfins);
 
     %forcing vectors in fin frame
-    F_1_G = [-CL_G1*cos(alpha_G1)-CD_G1*sin(alpha_G1), CL_G1*sin(alpha_G1) - CD_G1*cos(alpha_G1), 0];
-    F_2_G = [-CL_G2*cos(alpha_G2)-CD_G2*sin(alpha_G2), CL_G2*sin(alpha_G2) - CD_G2*cos(alpha_G2), 0];
-    F_3_G = [-CL_G3*cos(alpha_G3)-CD_G3*sin(alpha_G3), CL_G3*sin(alpha_G3) - CD_G3*cos(alpha_G3), 0];
+    F_1_G = [-L_G1*cos(alpha_G1)-D_G1*sin(alpha_G1), L_G1*sin(alpha_G1) - D_G1*cos(alpha_G1), 0];
+    F_2_G = [-L_G2*cos(alpha_G2)-D_G2*sin(alpha_G2), L_G2*sin(alpha_G2) - D_G2*cos(alpha_G2), 0];
+    F_3_G = [-L_G3*cos(alpha_G3)-D_G3*sin(alpha_G3), L_G3*sin(alpha_G3) - D_G3*cos(alpha_G3), 0];
 
     %transfer to forcing coefficients in body axes:
 
     %unrotate gridfin control deflection about z, to hinge frame:
-    F_1_H = [cos(d1), -sin(d1), 0; sin(d1), cos(d1), 0; 0, 0, 1] * F_1_G;
-    F_2_H = [cos(d2), -sin(d2), 0; sin(d2), cos(d2), 0; 0, 0, 1] * F_2_G;
-    F_3_H = [cos(d3), -sin(d3), 0; sin(d3), cos(d3), 0; 0, 0, 1] * F_3_G;
+    F_1_H = [cos(-d1), -sin(-d1), 0; sin(-d1), cos(-d1), 0; 0, 0, 1] * F_1_G;
+    F_2_H = [cos(-d2), -sin(-d2), 0; sin(-d2), cos(-d2), 0; 0, 0, 1] * F_2_G;
+    F_3_H = [cos(-d3), -sin(-d3), 0; sin(-d3), cos(-d3), 0; 0, 0, 1] * F_3_G;
 
     %rotate back about x axis back to gridfin 1
     F_1_B = F_1_H;
-    F_2_B = [1,0,0; 0, cos((2/3)*pi), sin((2/3)*pi) ; 0, -sin((2/3)*pi) , cos((2/3)*pi)] * F_2_H;
-    F_3_B = [1,0,0; 0, cos((4/3)*pi), sin((4/3)*pi) ; 0, -sin((4/3)*pi) , cos((2/3)*pi)] * F_3_H;
-
-    %NON DIMENSIONALISE FORCE VECTOR RELATIVE TO ROCKET 
-
+    F_2_B = [1,0,0; 0, cos(-(2/3)*pi), sin(-(2/3)*pi) ; 0, -sin(-(2/3)*pi) , cos(-(2/3)*pi)] * F_2_H;
+    F_3_B = [1,0,0; 0, cos(-(4/3)*pi), sin(-(4/3)*pi) ; 0, -sin(-(4/3)*pi) , cos(-(2/3)*pi)] * F_3_H;
     %x,y,z are now aligned with rocket x,y,z
-
+   
+    %non dimensionalise force vectors relative to rocket qinf and Sref 
+    CF_1_B = F_1_B./(0.5*rho*(norm(V_B)^2)*Sref);
+    CF_2_B = F_2_B./(0.5*rho*(norm(V_B)^2)*Sref);
+    CF_3_B = F_3_B./(0.5*rho*(norm(V_B)^2)*Sref);
+    
     %force coefficients: just sum to rocket coefficents
-    C_A = C_A - F_1_B(1) - F_2_B(1) - F_3_B(1);
-    C_Y = C_A + F_1_B(1) + F_2_B(1) + F_3_B(1);
+    C_A = C_A - CF_1_B(1) - CF_2_B(1) - CF_3_B(1); %x and A antiparallel
+    C_Y = C_Y + CF_1_B(2) + CF_2_B(2) + CF_3_B(2); %y and Y aligned
+    C_N = C_N + CF_1_B(3) + CF_2_B(3) + CF_3_B(3); %z and N aligned
 
-    %moments:
+    %moments: all force vectors now aligned with body axes at fin 1
+    %position
+    C_M_allgridfins = cross(r_gridfin_1, (CF_1_B + CF_2_B + CF_3_B));
+    C_M_allgridfins = cross(r1, F1) + cross(r2, F2) + cross(r3, F3);
+
+    C_l = C_l - C_M_allgridfins(1);
+    C_m = C_m + C_M_allgridfins(2);
+    C_n = C_n + C_M_allgridfins(3);
 
 end
