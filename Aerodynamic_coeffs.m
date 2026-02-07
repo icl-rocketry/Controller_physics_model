@@ -89,11 +89,13 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
 
     %gridfin definitions (location of hinge point effectively)
     G_angle_1 = 0;
-    G_angle_2 = pi/2 + (2/3)*pi;
-    G_angle_3 = pi/2 + (4/3)*pi;
-    r_gridfin_1 = [x_gridfin; 0; R_gridfin ];
-    r_gridfin_2 = [x_gridfin; R_gridfin*cos(G_angle_2); R_gridfin*sin(G_angle_2) ];
-    r_gridfin_3 = [x_gridfin; R_gridfin*cos(G_angle_3); R_gridfin*sin(G_angle_3) ];
+    G_angle_2 = (2/3)*pi;
+    G_angle_3 = (4/3)*pi;
+
+    r_gridfin_1 = [x_gridfin - x_cg; 0; R_gridfin ];
+    r_gridfin_2 = [x_gridfin - x_cg; R_gridfin*sin(G_angle_2); R_gridfin*cos(G_angle_2) ];
+    r_gridfin_3 = [x_gridfin - x_cg; R_gridfin*sin(G_angle_3); R_gridfin*cos(G_angle_3) ];
+
 
     %V_hingeframe = T(rotation from fin 1 to n in x axis) * ( V_B + w_B * r_gridfin)
     V_H_1 = [1,0,0; 0, 1, 0 ; 0, 0 , 1] * (V_B + cross(w_B, r_gridfin_1));
@@ -139,9 +141,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     D_G3 = CD_G3*(qinf_3 * chord_gridfins);
 
     %forcing vectors in fin frame
-    F_1_G = [-L_G1*sin(alpha_G1)-D_G1*cos(alpha_G1); L_G1*cos(alpha_G1) - D_G1*sin(alpha_G1); 0];
-    F_2_G = [-L_G2*sin(alpha_G2)-D_G2*cos(alpha_G2); L_G2*cos(alpha_G2) - D_G2*sin(alpha_G2); 0];
-    F_3_G = [-L_G3*sin(alpha_G3)-D_G3*cos(alpha_G3); L_G3*cos(alpha_G3) - D_G3*sin(alpha_G3); 0];
+    F_1_G = [L_G1*sin(alpha_G1)+D_G1*cos(alpha_G1); L_G1*cos(alpha_G1) - D_G1*sin(alpha_G1); 0];
+    F_2_G = [L_G2*sin(alpha_G2)+D_G2*cos(alpha_G2); L_G2*cos(alpha_G2) - D_G2*sin(alpha_G2); 0];
+    F_3_G = [L_G3*sin(alpha_G3)+D_G3*cos(alpha_G3); L_G3*cos(alpha_G3) - D_G3*sin(alpha_G3); 0];
 
     %transfer to forcing coefficients in body axes:
 
@@ -162,14 +164,14 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     CF_3_B = F_3_B./(0.5*rho*(norm(V_B)^2)*Sref);
     
     %force coefficients: just sum to rocket coefficents
-    C_A = C_A - CF_1_B(1) - CF_2_B(1) - CF_3_B(1); %x and A antiparallel
+    C_A = C_A + CF_1_B(1) + CF_2_B(1) + CF_3_B(1); %x and A aligned
     C_Y = C_Y + CF_1_B(2) + CF_2_B(2) + CF_3_B(2); %y and Y aligned
     C_N = C_N + CF_1_B(3) + CF_2_B(3) + CF_3_B(3); %z and N aligned
 
     %moments: using forcing vectors at each hinge
     C_M_allgridfins = cross(r_gridfin_1, F_1_H) + cross(r_gridfin_2, F_2_H) + cross(r_gridfin_3, F_3_H);
 
-    C_l = C_l - C_M_allgridfins(1);
+    C_l = C_l + C_M_allgridfins(1);
     C_m = C_m + C_M_allgridfins(2);
     C_n = C_n + C_M_allgridfins(3);
 
