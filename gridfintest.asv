@@ -72,7 +72,9 @@ h_out = uicontrol('Style','text','Pos',[20 20 300 350],'String','Results...','Ho
     pos_alpha_D = CD_sorted(pos_mask_D, 1);
     pos_CD      = CD_sorted(pos_mask_D, 2);
 
-    %shift the curve down by bias amount
+    % 4. REMOVE BIAS (The Critical Fix)
+    % We verify the value at the first point (closest to 0)
+    % and shift the entire curve down by that amount.
     lift_offset = pos_CL(1); 
     pos_CL = pos_CL - lift_offset; 
     
@@ -80,18 +82,19 @@ h_out = uicontrol('Style','text','Pos',[20 20 300 350],'String','Results...','Ho
     pos_alpha_L(1) = 0; 
     pos_CL(1)      = 0;
     
-    % For Drag, ensure Alpha starts at 0
+    % For Drag, ensure Alpha starts at 0, but keep CD as is (CD0)
     pos_alpha_D(1) = 0;
 
-    % mirror
+    % 5. Mirror to create Full Range (-50 to +50)
+    % Lift is Odd (Anti-Symmetric): [-CL ... 0 ... +CL]
     alpha_L_full = [-flip(pos_alpha_L(2:end)); pos_alpha_L];
     CL_full      = [-flip(pos_CL(2:end));      pos_CL];
     
-    % Drag is even
+    % Drag is Even (Symmetric): [+CD ... CD0 ... +CD]
     alpha_D_full = [-flip(pos_alpha_D(2:end)); pos_alpha_D];
     CD_full      = [flip(pos_CD(2:end));       pos_CD];
 
-    % get splines
+    % 6. Create Splines
     CLfit_spline = spline(alpha_L_full, CL_full);
     CDfit_spline = spline(alpha_D_full, CD_full);
 
