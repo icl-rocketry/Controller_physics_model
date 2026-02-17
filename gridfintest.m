@@ -18,7 +18,7 @@ uicontrol('Style','text','Pos',[20 650 250 20],'String','Velocity Vx (m/s)','Hor
 h_Vx = uicontrol('Style','slider','Pos',[20 630 250 20],'Min',10,'Max',300,'Val',100);
 
 uicontrol('Style','text','Pos',[20 590 250 20],'String','Roll Rate p (rad/s)','HorizontalAlignment','left');
-h_P = uicontrol('Style','slider','Pos',[20 570 250 20],'Min',-10,'Max',10,'Val',0);
+h_P = uicontrol('Style','slider','Pos',[20 570 250 20],'Min',-100,'Max',100,'Val',0);
 
 uicontrol('Style','text','Pos',[20 530 250 20],'String','Deflection 1 (rad)','HorizontalAlignment','left');
 h_d1 = uicontrol('Style','slider','Pos',[20 510 250 20],'Min',-0.5,'Max',0.5,'Val',0);
