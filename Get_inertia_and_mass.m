@@ -4,7 +4,7 @@ function [current_mass, CoM, J] = Get_inertia_and_mass(m_dry, m_fuel_initial, Co
     % estimate fuel weight
     m_fuel = mass - m_dry;
 
-    % est
+    % estimate 
     current_mass = m_dry + m_fuel;
     fuel_pct = m_fuel / m_fuel_initial;
     CoM = CoM_dry + fuel_pct .* (CoM_wet - CoM_dry);

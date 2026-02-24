@@ -2,8 +2,8 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     % Calculates aerodynamics coefficients from current state of the oncoming flow and rocket geormetry
 
     % convert pitch and SS angle to degrees for tables
-    alpha_deg = rad2deg(alpha_rad);
-    beta_deg = rad2deg(beta_rad);
+    alpha_deg = alpha_rad * (180 / pi);
+    beta_deg = beta_rad * (180 / pi);
     
     % obtain total AoA (axisymetric body) and the decomposition ratios
     total_alpha = sqrt(alpha_deg^2 + beta_deg^2);
@@ -11,9 +11,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     deg_ratio_beta = beta_deg / total_alpha;
     
     % extract static force and moment coefficients
-    Ca_total = ppval(aerosplinefits.CA_static, Mach_n, alpha_total * 180/pi);
-    Cn_total = ppval(aerosplinefits.CN_static, Mach_n, alpha_total * 180/pi);
-    Cmy_ref = ppval(aerosplinefits.CM_pitch_static, Mach_n, alpha_total * 180/pi);
+    Ca_total = ppval(aerosplinefits.CA_static, Mach_n, alpha_total * (180 / pi));
+    Cn_total = ppval(aerosplinefits.CN_static, Mach_n, alpha_total * (180 / pi));
+    Cmy_ref = ppval(aerosplinefits.CM_pitch_static, Mach_n, alpha_total * (180 / pi));
     
     % calculate centre of pressure with moment and force ratio
     if abs(Cn_total) < 1e-4
