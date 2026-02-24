@@ -8,8 +8,8 @@ function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha,
 
     % obtain mach number and dynamic pressure
     flow_V = norm(state(4:6));
-    Mach_n = get_mach(state(3), flow_V, Tables.atm_table);
-    rho = 1.225; % change once atm table is implemented
+    Mach_n = get_mach(state(3), flow_V);
+    [rho, ~, ~] = standard_atm_function(state(3));
     q = 0.5 * rho * (flow_V ^ 2);
 
     % calculate aerodynamic coefficients

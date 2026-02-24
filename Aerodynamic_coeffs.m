@@ -75,7 +75,8 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     C_n = Cn_static + Cn_damping;
 
     % get body velocities for grid fin calculation
-    V_B = state(4:6);
+    RBI = quat2rotm(state(7:11));
+    V_B = transpose(RBI) * state(4:6);
     w_B = state(11:13);
     
     % obtain gridfin aero contributions factoring in actuation angle
@@ -92,6 +93,7 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     C_A = C_A + CA_GF; % x and A aligned
     C_Y = C_Y + CY_GF; % y and Y aligned
     C_N = C_N + CN_GF; % z and N aligned
+
     % moments
     C_l = C_l + Cl_GF;
     C_m = C_m + Cm_GF;
