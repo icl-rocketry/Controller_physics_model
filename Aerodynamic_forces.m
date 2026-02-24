@@ -1,4 +1,4 @@
-function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, flow_V, alpha, beta, x_cg, params)
+function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, params)
 % calculates aerodynamic forces and torques acting on the rocket in body axes
     
     % extract tables
@@ -7,6 +7,7 @@ function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, flow_V
     params.L_ref = L_ref;
 
     % obtain mach number and dynamic pressure
+    flow_V = norm(state(4:6));
     Mach_n = get_mach(state(3), flow_V, Tables.atm_table);
     rho = 1.225; % change once atm table is implemented
     q = 0.5 * rho * (flow_V ^ 2);

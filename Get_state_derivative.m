@@ -17,10 +17,10 @@ function x_dot = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_b
      
     % get state derivatives in inertial axes
     r_dot = v;
-    v_dot = (1 / m) * (R_BI * F_body) + g; % F = ma but body forces must be transformed with rotation matrix to move to inertial frame
+    v_dot = (1 / m) * (R_BI * F_body) + g;
     q_dot = Quaternion_derivative(q, w); % quaternion derivative taken in body reference frame. Note: this is equivilant to inertial frame w.o the need for transform.
     w_dot = inv_J * (tau_body - cross(w, J .* w));
-    m_dot = - norm(F_thrust_body) / (Isp * g0);
+    m_dot = - norm(F_thrust_body) / (Isp * g0); % check this
     
     % create and assemble derivative vector
     x_dot = zeros(14, 1);
