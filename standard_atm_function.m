@@ -1,7 +1,7 @@
 function [rho, T, P] = standard_atm_function(altitude)
 % Uses standard atmospheric relation to calculate the density of air at the current altitude
 
-    % constants
+    % constants from literature
     g = 9.81;
     lambda = -0.0065;
     P0 = 101325;

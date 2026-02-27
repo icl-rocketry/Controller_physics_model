@@ -1,4 +1,4 @@
-function x_dot = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_body, F_aero_body, tau_aero_body, Isp, g0)
+function [x_dot, x_add_dot] = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_body, F_aero_body, tau_aero_body, Isp, OF, g0)
 % Calculates state derivative vector given resultant forces, torques, mass and inertial moment
     
     % decompose state vector
@@ -21,6 +21,9 @@ function x_dot = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_b
     q_dot = Quaternion_derivative(q, w); % quaternion derivative taken in body reference frame. Note: this is equivilant to inertial frame w.o the need for transform.
     w_dot = inv_J * (tau_body - cross(w, J .* w));
     m_dot = - norm(F_thrust_body) / (Isp * g0); % check this
+
+    m_dot_fuel = m_dot * (1 / (1 + OF));
+    m_dot_ox = m_dot * (OF / (1 + OF));
     
     % create and assemble derivative vector
     x_dot = zeros(14, 1);
@@ -29,4 +32,9 @@ function x_dot = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_b
     x_dot(7:10) = q_dot;
     x_dot(11:13) = w_dot;
     x_dot(14) = m_dot;
+
+    % create and assemble additional derivative vector (when actuators are added they go here as well)
+    x_add_dot = zeros(2, 1);
+    x_add_dot(1) = m_dot_fuel;
+    x_add_dot(2) = m_dot_ox;
 end
