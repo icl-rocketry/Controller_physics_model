@@ -1,7 +1,5 @@
 function [tau_m] = get_motor_torque(theta_m, theta_dot_m, u, system_config)
 % Calculates the motor output torque
-    
-    Kp, Kd, tau_stall, omega_stall, Vmax, tau_max, PW_max, PW_neutral, PW_min, theta_max, theta_min
 
     % calculate the PWM to angle mapping
     m = (system_config.PW_max - system_config.PW_min) / (system_config.theta_max - system_config.theta_min);
