@@ -1,8 +1,8 @@
 function [aerosplinefits] = LoadAeroTables()
     
     % ROCKET
-    static_table_raw = readmatrix("B0000.xlsx");
-    dynamic_table_raw = readmatrix("xpitch_B0000.xlsx");
+    static_table_raw = readtable("B0000.xlsx");
+    dynamic_table_raw = readtable("xpitch_B0000.xlsx");
 
     static_table_raw = static_table_raw{:,2:19};
     dynamic_table_raw = dynamic_table_raw{:, 2:19};

@@ -7,6 +7,7 @@ function [rho, T, P] = standard_atm_function(altitude)
     P0 = 101325;
     T0 = 288.15;
     rho0 = 1.225;
+    R = 287.15;
     
     % using relations to obtain density, pressure and temperature
     T = T0 + lambda * altitude;
