@@ -1,4 +1,4 @@
-function [r_cg, J] = Get_inertia_and_mass(m_current, m_fuel, m_ox, r_dry, m_dry, R_ox, R_f, m_ox0, m_fuel0, L0_ox, L0_f, Base_ox, Base_f)
+function [r_cg, J] = Get_inertia_and_mass(m_current, m_fuel, m_ox, r_dry, m_dry, R_ox, R_f, m_ox0, m_fuel0, L0_ox, L0_f, Base_ox, Base_f, J_dry)
 % Obtains the new mass the new centre of gravity and the new inertia tensor.
 
     % get COM of rocket components

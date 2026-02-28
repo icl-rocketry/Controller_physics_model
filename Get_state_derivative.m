@@ -14,7 +14,7 @@ function [x_dot, x_add_dot] = Get_state_derivative(t, x, R_BI, J, F_thrust_body,
     % invert J and get gravitational vector
     inv_J = J ^ -1;
     g = [0; 0; -g0];
-     
+    
     % get state derivatives in inertial axes
     r_dot = v;
     v_dot = (1 / m) * (R_BI * F_body) + g;

@@ -1,8 +1,7 @@
-function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, params)
+function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, Tables, params)
 % calculates aerodynamic forces and torques acting on the rocket in body axes
     
-    % extract tables
-    params.Tables = Tables;
+    % extract important values
     params.S_ref = S_ref; 
     params.L_ref = L_ref;
 

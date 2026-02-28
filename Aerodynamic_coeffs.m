@@ -26,9 +26,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     end 
     
     % extract dynamic effect coefficients for forces and moments
-    Caq = ppval(aerosplinefits.CA_dynamic, Mach_n, alpha_total * 180/pi);
-    Cnq = ppval(aerosplinefits.CN_dynamic, Mach_n, alpha_total * 180/pi);
-    Cmq = ppval(aerosplinefits.CM_pitch_dynamic, Mach_n, alpha_total * 180/pi);
+    Caq = ppval(Tables.aerosplinefits.CA_dynamic, Mach_n, alpha_total * 180/pi);
+    Cnq = ppval(Tables.aerosplinefits.CN_dynamic, Mach_n, alpha_total * 180/pi);
+    Cmq = ppval(Tables.aerosplinefits.CM_pitch_dynamic, Mach_n, alpha_total * 180/pi);
     
     % appromimate a stationary rocket aero effects as at a slightly faster speed for numerical stability
     if flow_v < 1e-4
