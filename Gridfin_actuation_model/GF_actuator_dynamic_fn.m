@@ -12,8 +12,8 @@ function [actuator_state_dot] = GF_actuator_dynamic_fn(actuator_state, u, system
     tau_aero = get_GF_hinge_moment();
     
     % Calculate gridfin and motor acceleration 
-    theta_ddot_m = (1 / Im) * (tau_m - Cm * theta_dot_m - (tau_trans / N));
-    theta_ddot_L = (1 / IL) * (tau_trans - tau_aero - CL * theta_dot_L);
+    theta_ddot_m = (1 / system_config.Im) * (tau_m - system_config.Cm * actuator_state(2) - (tau_trans / system_config.N));
+    theta_ddot_L = (1 / system_config.IL) * (tau_trans - tau_aero - system_config.CL * actuator_state(4));
 
     % get state derivative vector
     actuator_state_dot = zeros(4);
