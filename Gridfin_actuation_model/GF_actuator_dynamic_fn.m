@@ -2,7 +2,7 @@ function [actuator_state_dot] = GF_actuator_dynamic_fn(actuator_state, u, system
 % Obtains the rate of change of the gridfin state from current state
 
     % get torque output from the motor
-    tau_m = get_motor_torque(actuator_state(1), actuator_state(2), u, );
+    tau_m = get_motor_torque(actuator_state(1), actuator_state(2), u, system_config);
 
     % get transition torque from the gears
     tau_trans = get_transition_torque(actuator_state, system_config);
@@ -18,5 +18,7 @@ function [actuator_state_dot] = GF_actuator_dynamic_fn(actuator_state, u, system
     % get state derivative vector
     actuator_state_dot = zeros(4);
     actuator_state_dot(1) = actuator_state(2);
-
+    actuator_state_dot(2) = theta_ddot_m;
+    actuator_state_dot(3) = actuator_state(4);
+    actuator_state_dot(4) = theta_ddot_L;
 end
