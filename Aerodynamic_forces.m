@@ -1,4 +1,4 @@
-function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, Tables, params)
+function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, params)
 % calculates aerodynamic forces and torques acting on the rocket in body axes
     
     % extract important values
@@ -8,6 +8,7 @@ function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha,
     S_ref_GF = params.S_ref_GF;
     R_rocket = params.R_rocket;
     chord_gridfins = params.chord_gridfins;
+    Tables = params.Tables;
 
     % obtain mach number and dynamic pressure
     flow_V = norm(state(4:6));
@@ -16,19 +17,15 @@ function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha,
     q = 0.5 * rho * (flow_V ^ 2);
 
     % calculate aerodynamic coefficients
-   %[C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, ...
-   %     flow_V, Mach_n, L_ref, x_cg, S_ref, alpha, beta, u_fins, ...
-   %     params.x_gridfin, params.S_ref_gridfin, params.R_rocket, ...
-   %     params.chord_gridfin, Tables);
-
-    [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, ...
+    [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, ...
         flow_V, Mach_n, rho, L_ref, x_cg, S_ref, alpha, beta, ...
         u_fins, x_gridfin, S_ref_GF, R_rocket, chord_gridfins, Tables);
+
     
     % calculate aero forces
-    Fx = - C_A * q * S_ref;
+    Fx = C_X * q * S_ref;
     Fy = C_Y * q * S_ref;
-    Fz = - C_N * q * S_ref;
+    Fz = C_Z * q * S_ref;
     
     % calculate aero torques
     tau_x = C_l * q * S_ref * L_ref;

@@ -14,6 +14,7 @@ function [x_dot, x_add_dot] = dynamics_fn(t, x, x_add, u, rocket_config)
 
     % Calculate body to inertial axes rotation vector
     R_BI = quat2rotm(q);
+    v_body = x(4:6) * transpose(R_BI);
 
     % Calculate aerodynamic force and torque in body axes
     u_grid_fins = u(1:3); % note: for now assume infinite precision
@@ -21,8 +22,8 @@ function [x_dot, x_add_dot] = dynamics_fn(t, x, x_add, u, rocket_config)
     % add actuator model here
 
     % calculate alpha and beta (z and y)
-    alpha = atan2(u(3), u(1));
-    beta = atan2(u(2), u(1));
+    alpha = atan2(v_body(3), -v_body(1));
+    beta = atan2(v_body(2), -v_body(1));
     [F_aero_body, tau_aero_body] = Aerodynamic_forces(x, u_grid_fins, alpha, beta, x_cg, rocket_config);
     
     % Calculate force and torque from engine in body axes

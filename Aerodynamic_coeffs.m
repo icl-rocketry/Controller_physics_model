@@ -1,4 +1,4 @@
-function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, rho, L_ref, x_cg, S_ref, alpha_rad, beta_rad, u_gridfin, x_gridfin, S_ref_GF, R_rocket, chord_gridfins, Tables)
+function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, rho, L_ref, x_cg, S_ref, alpha_rad, beta_rad, u_gridfin, x_gridfin, S_ref_GF, R_rocket, chord_gridfins, Tables)
     % Calculates aerodynamics coefficients from current state of the oncoming flow and rocket geormetry
 
     aerosplinefits = Tables.aerosplinefits;
@@ -17,9 +17,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     %Cn_total = ppval(aerosplinefits.CN_static, Mach_n, alpha_total * (180 / pi));
     %Cmy_ref = ppval(aerosplinefits.CM_pitch_static, Mach_n, alpha_total * (180 / pi));
 
-    Ca_total = fnval(aerosplinefits.CA_static, [Mach_n; alpha_total * (180 / pi)]);
-    Cn_total = fnval(aerosplinefits.CN_static, [Mach_n; alpha_total * (180 / pi)]);
-    Cmy_ref = fnval(aerosplinefits.CM_pitch_static, [Mach_n; alpha_total * (180 / pi)]);
+    Ca_total = fnval(aerosplinefits.CA_static, [Mach_n; alpha_total]);
+    Cn_total = fnval(aerosplinefits.CN_static, [Mach_n; alpha_total]);
+    Cmy_ref = fnval(aerosplinefits.CM_pitch_static, [Mach_n; alpha_total]);
     
     % calculate centre of pressure with moment and force ratio
     if abs(Cn_total) < 1e-4
@@ -36,9 +36,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     % Cnq = ppval(Tables.aerosplinefits.CN_dynamic, Mach_n, alpha_total * 180/pi);
     % Cmq = ppval(Tables.aerosplinefits.CM_pitch_dynamic, Mach_n, alpha_total * 180/pi);
 
-    Caq = fnval(aerosplinefits.CA_dynamic, [Mach_n; alpha_total * 180/pi]);
-    Cnq = fnval(aerosplinefits.CN_dynamic, [Mach_n; alpha_total * 180/pi]);
-    Cmq = fnval(aerosplinefits.CM_pitch_dynamic, [Mach_n; alpha_total * 180/pi]);
+    Caq = fnval(aerosplinefits.CA_dynamic, [Mach_n; alpha_total]);
+    Cnq = fnval(aerosplinefits.CN_dynamic, [Mach_n; alpha_total]);
+    Cmq = fnval(aerosplinefits.CM_pitch_dynamic, [Mach_n; alpha_total]);
     
     % appromimate a stationary rocket aero effects as at a slightly faster speed for numerical stability
     if flow_v < 1e-4
@@ -56,9 +56,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     lever_arm_ratio = (x_cp - x_cg) / L_ref;
     
     % CA (Cx): Axial Force
-    Cx_static = Ca_total;
-    Cx_dynamic = Caq * rate_mag;
-    C_A = Cx_static + Cx_dynamic;
+    Ca_static = Ca_total;
+    Ca_dynamic = Caq * rate_mag;
+    C_A = Ca_static + Ca_dynamic;
 
     % CN (Cz): Normal Force
     Cz_static = - Cn_total * deg_ratio_alpha;
@@ -85,8 +85,8 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     C_n = Cn_static + Cn_damping;
 
     % get body velocities for grid fin calculation
-    RBI = quat2rotm(state(7:11));
-    V_B = transpose(RBI) * state(4:6);
+    RBI = quat2rotm(state(7:10));
+    V_B = state(4:6) * transpose(RBI);
     w_B = state(11:13);
     
     % obtain gridfin aero contributions factoring in actuation angle
@@ -100,9 +100,9 @@ function [C_A, C_N, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     
     % add gridfin contributions to total aero coeffs
     % forces
-    C_A = C_A + CA_GF; % x and A aligned
+    C_X = C_A + CA_GF; % x and A aligned
     C_Y = C_Y + CY_GF; % y and Y aligned
-    C_N = C_N + CN_GF; % z and N aligned
+    C_Z = C_N + CN_GF; % z and N aligned
 
     % moments
     C_l = C_l + Cl_GF;

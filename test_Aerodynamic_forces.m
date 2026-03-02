@@ -1,32 +1,45 @@
-%set inputs:
-altitude   = 5000;           % m
-V_body     = [-150; 0; 0];   % body velocity [Vx;Vy;Vz] m/s
-alpha      = deg2rad(1);     % angle of attack (rad)
-beta       = deg2rad(1);    % sideslip (rad)
-body_rates = [0; 0.05; 0];   % [p; q_rate; r] rad/s
+clear
+clc
+
+%testing parameters
+position = [0, 0, 5000];
+v_inertial     = [0; 0; -150];  
+q = [0, -0.707, 0, 0.707];
+w_body = [0; 0; 0];  
 u_fins     = [0; 0; 0];      % grid-fin deflections (rad)
 
-x_cg = -2.5;                  % CG from nose (m)
-params = struct("S_ref", 0.0314);
-params.L_ref         = 0.20;
-params.R_rocket      = 0.10;
-params.x_gridfin     = -0.30;
-params.S_ref_GF = 0.010;
-params.chord_gridfins = 0.050;
-R = 0.1;
+state = [position(:); v_inertial(:); q(:); w_body(:)]';
 
+%find alpha and beta, done in dynamics_fn
+R_BI = quat2rotm(q);
+v_body = transpose(R_BI) * v_inertial ;
+
+% calculate alpha and beta (z and y)
+alpha = atan2(v_body(3), -v_body(1));
+beta = atan2(v_body(2), -v_body(1));
+
+%rocket parameters
+x_cg = -15; %from nose
+params = struct("S_ref", 0.0314);
+%params.Sref = 0.0314;
+params.L_ref         = 30;
+params.R_rocket      = 2;
+params.x_gridfin     = -7;
+params.S_ref_GF = 0.5;
+params.chord_gridfins = 0.8;
+
+%load tables
 aerosplinefits = LoadAeroTables();
 Tables = struct("aerosplinefits", aerosplinefits);
+params.Tables = Tables;
 
-state = [0; 0; altitude; V_body; 0; 0; 0; 1; body_rates]; % quat = identity
-
-[F, tau] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, Tables, params);
+[F, tau] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, params);
 
 fprintf('\nF   = [%+.2f  %+.2f  %+.2f] N\n',   F(1),   F(2),   F(3));
 fprintf('tau = [%+.4f  %+.4f  %+.4f] N·m\n\n', tau(1), tau(2), tau(3));
 
 % plot
-visualise(F, tau, R, params.L_ref, x_cg)
+%visualise(F, tau, params.R_rocket, params.L_ref, x_cg)
 
 
 function visualise(F, tau, R, L_ref, x_cg)
