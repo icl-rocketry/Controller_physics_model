@@ -142,11 +142,11 @@ function run_simulation(fig_h)
     d3 = data.h_d3.Value;
 
     % Define Constants required by your code block
-    chord_gridfins = 0.1; % m
+    chord_gridfins = -0.1; % m
     Sref = 0.02; % m^2
-    x_gridfin = 3; % m
+    x_gridfin = -0.5; % m
     R_gridfin = 0.15; % m
-    x_cg = 2;
+    x_cg = -2;
     Sref_rocket = 0.3;
     
     % Initialize Coeffs

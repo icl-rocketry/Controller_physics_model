@@ -4,7 +4,7 @@ clc
 %testing parameters
 position = [0, 0, 5000];
 v_inertial     = [0, 0, -150];  
-q = [0, -0.707, 0, 0.707];
+q = [0, 0, 0, 0];
 w_body = [0, 0, 0];  
 u_fins     = [0, 0, 0];      % grid-fin deflections (rad)
 
