@@ -13,10 +13,6 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     deg_ratio_beta = beta_deg / alpha_total;
     
     % extract static force and moment coefficients
-    %Ca_total = ppval(aerosplinefits.CA_static, Mach_n, alpha_total * (180 / pi));
-    %Cn_total = ppval(aerosplinefits.CN_static, Mach_n, alpha_total * (180 / pi));
-    %Cmy_ref = ppval(aerosplinefits.CM_pitch_static, Mach_n, alpha_total * (180 / pi));
-
     Ca_total = fnval(aerosplinefits.CA_static, [Mach_n; alpha_total]);
     Cn_total = fnval(aerosplinefits.CN_static, [Mach_n; alpha_total]);
     Cmy_ref = fnval(aerosplinefits.CM_pitch_static, [Mach_n; alpha_total]);
@@ -32,10 +28,6 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     end 
     
     % extract dynamic effect coefficients for forces and moments
-    % Caq = ppval(Tables.aerosplinefits.CA_dynamic, Mach_n, alpha_total * 180/pi);
-    % Cnq = ppval(Tables.aerosplinefits.CN_dynamic, Mach_n, alpha_total * 180/pi);
-    % Cmq = ppval(Tables.aerosplinefits.CM_pitch_dynamic, Mach_n, alpha_total * 180/pi);
-
     Caq = fnval(aerosplinefits.CA_dynamic, [Mach_n; alpha_total]);
     Cnq = fnval(aerosplinefits.CN_dynamic, [Mach_n; alpha_total]);
     Cmq = fnval(aerosplinefits.CM_pitch_dynamic, [Mach_n; alpha_total]);
