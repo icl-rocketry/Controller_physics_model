@@ -78,7 +78,7 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
 
     % get body velocities for grid fin calculation
     RBI = quat2rotm(state(7:10));
-    V_B = state(4:6) * transpose(RBI);
+    V_B = transpose(RBI) * state(4:6);
     w_B = state(11:13);
     
     % obtain gridfin aero contributions factoring in actuation angle

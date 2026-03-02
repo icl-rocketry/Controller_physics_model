@@ -3,16 +3,16 @@ clc
 
 %testing parameters
 position = [0, 0, 5000];
-v_inertial     = [0; 0; -150];  
+v_inertial     = [0, 0, -150];  
 q = [0, -0.707, 0, 0.707];
-w_body = [0; 0; 0];  
-u_fins     = [0; 0; 0];      % grid-fin deflections (rad)
+w_body = [0, 0, 0];  
+u_fins     = [0, 0, 0];      % grid-fin deflections (rad)
 
-state = [position(:); v_inertial(:); q(:); w_body(:)]';
+state = [position, v_inertial, q, w_body]';
 
 %find alpha and beta, done in dynamics_fn
 R_BI = quat2rotm(q);
-v_body = transpose(R_BI) * v_inertial ;
+v_body = transpose(R_BI) * v_inertial';
 
 % calculate alpha and beta (z and y)
 alpha = atan2(v_body(3), -v_body(1));
