@@ -29,10 +29,10 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, x_cg, height_gridfin, Sref_
         RHF = [cos(GF_actuation(idx)), sin(GF_actuation(idx)), 0; -sin(GF_actuation(idx)), cos(GF_actuation(idx)), 0; 0, 0, 1];
       
         % Rotating fin velocities into hinge reference
-        V_H = V_F_B * RBH;
+        V_H = RBH* V_F_B;
     
         % Rotating fin velocities into fin reference
-        V_F = V_H * RHF;
+        V_F = RHF * V_H;
     
         % Aero section - approximations used so come back to this when we have wind tunnel data
         % for now grid fins are modelled as quasi-axisymetric which is a

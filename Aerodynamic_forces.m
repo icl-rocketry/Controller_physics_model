@@ -21,7 +21,6 @@ function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, alpha,
         flow_V, Mach_n, rho, L_ref, x_cg, S_ref, alpha, beta, ...
         u_fins, x_gridfin, S_ref_GF, R_rocket, chord_gridfins, Tables);
 
-    
     % calculate aero forces
     Fx = C_X * q * S_ref;
     Fy = C_Y * q * S_ref;
