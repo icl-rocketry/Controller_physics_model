@@ -1,13 +1,5 @@
-function [tau_m] = get_motor_torque(theta_m, theta_dot_m, u, system_config)
+function [tau_m] = get_motor_torque(theta_m, theta_dot_m, theta_cmd, system_config)
 % Calculates the motor output torque
-
-    % calculate the PWM to angle mapping
-    m = (system_config.PW_max - system_config.PW_min) / (system_config.theta_max - system_config.theta_min);
-    c = system_config.PW_neutral;
-
-    % get motor command angle
-    theta_cmd = (u - c) / m;
-
     % predict internal PD command
     e = theta_cmd - theta_m;
     Vcmd = system_config.Kp * e - system_config.Kd * theta_dot_m;

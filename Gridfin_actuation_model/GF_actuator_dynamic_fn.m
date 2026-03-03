@@ -1,6 +1,5 @@
 function [actuator_state_dot] = GF_actuator_dynamic_fn(actuator_state, u, system_config)
 % Obtains the rate of change of the gridfin state from current state
-
     % get torque output from the motor
     tau_m = get_motor_torque(actuator_state(1), actuator_state(2), u, system_config);
 
