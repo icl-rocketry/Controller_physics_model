@@ -9,15 +9,12 @@ function [x_dot, x_add_dot] = dynamics_fn(t, x, x_add, u, rocket_config)
 
     % Ensure quaternions are on the manifold
     q = x(7:10);
-    q = q / norm(q);
-
-    % Calculate body to inertial axes rotation vector
-    R_BI = quat2rotm(q);
-    v_body = x(4:6) * transpose(R_BI);
-
+    x(7:10) = q / norm(q);
+    
+    % Initialise additonal state derivative vector
     x_add_dot = zeros(size(x_add));
 
-    % grid fin actuator model
+    % grid fin actuator model to get state derivative
     for i = 1:3
         actuator_state = x_add(2 + i);
         x_add_dot_GF = GF_actuator_dynamic_fn(actuator_state, ...
@@ -25,19 +22,11 @@ function [x_dot, x_add_dot] = dynamics_fn(t, x, x_add, u, rocket_config)
         x_add_dot(2 + i) = x_add_dot_GF;
     end
 
-    % grid fin control inputs
-    u_grid_fins = u(1:3);
-
-    % calculate alpha and beta (z and y)
-    alpha = atan2(v_body(3), -v_body(1));
-    beta = atan2(v_body(2), -v_body(1));
-
     % Calculate aerodynamic force and torque in body axes
     [F_aero_body, tau_aero_body] = Aerodynamic_forces(x, ...
-        u_grid_fins, alpha, beta, x_cg, rocket_config);
+        u(1:3), x_cg, rocket_config);
     
     % Calculate force and torque from engine in body axes
-    u_engine = u(4:6);
     [F_thrust_body, tau_thrust_body, Isp] = Engine_Model(); % need to finish
 
     % Caculates state derivative with forces and torques

@@ -1,4 +1,4 @@
-function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, x_cg, height_gridfin, Sref_gridfin, Sref_rocket, Lref_rocket, R_body, x_gridfin, GF_actuation, rho, aerosplinefits)
+function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, q_fs, x_cg, height_gridfin, Sref_gridfin, Sref_rocket, Lref_rocket, R_body, x_gridfin, GF_actuation, rho, aerosplinefits)
 % Calculates the aerodynamic ceoff contributions from the gridfins
 
     % gridfin angles about x axis
@@ -37,7 +37,7 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, x_cg, height_gridfin, Sref_
         % Aero section - approximations used so come back to this when we have wind tunnel data
         % for now grid fins are modelled as quasi-axisymetric which is a
         % valid assumption but is not perfectly accurate so change this
-        % when we have data fro gridfins in beta and alpha
+        % when we have data for gridfins in beta and alpha
         
         % get velocities
         U = V_F(1);
@@ -48,7 +48,7 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, x_cg, height_gridfin, Sref_
         V_transverse = sqrt(V ^ 2 + W ^ 2);
 
         % get total angle of attack and decomposition angle for y and z
-        alpha_total = atan2(V_transverse, U);
+        alpha_total = atan2(V_transverse, -U);
         phi_aero = atan2(W, V);
 
         % obtain dynamic pressure
@@ -63,8 +63,9 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, x_cg, height_gridfin, Sref_
         D = CD * qinf * Sref_gridfin;
 
         % get axial and transverse forces
-        F_axial = D * cos(alpha_total) - L * sin(alpha_total);
-        F_transverse = L * cos(alpha_total) + D * sin(alpha_total);
+        axial_dir = sign(U);
+        F_axial = - D * axial_dir * cos(alpha_total) + L * axial_dir * sin(alpha_total);
+        F_transverse = - L * axial_dir * cos(alpha_total) - D * axial_dir * sin(alpha_total);
 
         % decompose forces
         Fx = F_axial;
@@ -78,7 +79,7 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, x_cg, height_gridfin, Sref_
         M_B = cross(r_gridfin, F_B);
 
         % convert back to coeffients and add to the overall matrix
-        C_F(:, idx) = F_B ./ (qinf * Sref_rocket);
-        C_M(:, idx) = M_B ./ (qinf * Sref_rocket * Lref_rocket);
+        C_F(:, idx) = F_B ./ (q_fs * Sref_rocket);
+        C_M(:, idx) = M_B ./ (q_fs * Sref_rocket * Lref_rocket);
     end 
 end

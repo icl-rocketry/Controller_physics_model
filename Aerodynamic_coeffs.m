@@ -1,6 +1,7 @@
-function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach_n, rho, L_ref, x_cg, S_ref, alpha_rad, beta_rad, u_gridfin, x_gridfin, S_ref_GF, R_rocket, chord_gridfins, Tables)
-    % Calculates aerodynamics coefficients from current state of the oncoming flow and rocket geormetry
-
+function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, V_B, flow_v, Mach_n, rho, L_ref, x_cg, S_ref, alpha_rad, beta_rad, u_gridfin, x_gridfin, S_ref_GF, R_rocket, chord_gridfins, Tables)
+% Calculates aerodynamics coefficients from current state of the oncoming flow and rocket geormetry
+    
+    % extracts the aero spline functions from tables
     aerosplinefits = Tables.aerosplinefits;
 
     % convert pitch and SS angle to degrees for tables
@@ -8,9 +9,18 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     beta_deg = beta_rad * (180 / pi);
     
     % obtain total AoA (axisymetric body) and the decomposition ratios
-    alpha_total = sqrt(alpha_deg^2 + beta_deg^2);
-    deg_ratio_alpha = alpha_deg / alpha_total;
-    deg_ratio_beta = beta_deg / alpha_total;
+    V_axial = -V_B(1);
+    V_transverse = sqrt(V_B(2)^2 + V_B(3)^2);
+    alpha_total_rad = atan2(V_transverse, V_axial);
+    alpha_total = alpha_total_rad * (180 / pi);
+
+    if alpha_total < 1e-6
+        deg_ratio_alpha = 0;
+        deg_ratio_beta = 0;
+    else
+        deg_ratio_alpha = alpha_deg / alpha_total;
+        deg_ratio_beta = beta_deg / alpha_total;
+    end
     
     % extract static force and moment coefficients
     Ca_total = fnval(aerosplinefits.CA_static, [Mach_n; alpha_total]);
@@ -20,12 +30,12 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     % calculate centre of pressure with moment and force ratio
     if abs(Cn_total) < 1e-4
         % if normal force is too small to calculate use approximation since Cp stays constant at small AoA
-        Cn_safe = ppval(aerosplinefits.CN_static, Mach_n, 0.1);
-        Cmy_safe = ppval(aerosplinefits.CN_static, Mach_n, 0.1);
-        x_cp = -(Cmy_safe / Cn_safe) * L_ref;
+        Cn_safe = fnval(aerosplinefits.CN_static, [Mach_n; 0.05]);
+        Cmy_safe = fnval(aerosplinefits.CM_pitch_static, [Mach_n; 0.05]);
+        x_cp = (Cmy_safe / Cn_safe) * L_ref;
     else
-        x_cp = -(Cmy_ref / Cn_total) * L_ref;
-    end 
+        x_cp = (Cmy_ref / Cn_total) * L_ref;
+    end
     
     % extract dynamic effect coefficients for forces and moments
     Caq = fnval(aerosplinefits.CA_dynamic, [Mach_n; alpha_total]);
@@ -59,7 +69,7 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
 
     % CY (Cy): Yaw Force
     Cy_static = - Cn_total * deg_ratio_beta;
-    Cy_dynamic = - Cnq * r_bar;
+    Cy_dynamic = Cnq * r_bar;
     C_Y = Cy_static + Cy_dynamic;
 
     % Cl: Roll Torque
@@ -75,16 +85,12 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, flow_v, Mach
     Cn_damping = Cmq * r_bar;
     Cn_static = - Cn_total * lever_arm_ratio * deg_ratio_beta;
     C_n = Cn_static + Cn_damping;
-
-    % get body velocities for grid fin calculation
-    RBI = quat2rotm(state(7:10));
-    V_B = transpose(RBI) * state(4:6);
-    w_B = state(11:13);
     
     % obtain gridfin aero contributions factoring in actuation angle
+    q_free_stream = 0.5 * rho * (flow_v ^ 2);
     [CF_GF, CM_GF] = grid_fin_aero_coeffs(V_B, ...
-        w_B, x_cg, chord_gridfins, S_ref_GF, S_ref, L_ref, ...
-        R_rocket, x_gridfin, u_gridfin, rho, Tables.aerosplinefits);
+        state(11:13), q_free_stream, x_cg, chord_gridfins, S_ref_GF, S_ref, ...
+        L_ref, R_rocket, x_gridfin, u_gridfin, rho, Tables.aerosplinefits);
     
     % sum the 3 separate gridfin contributions
     CA_GF = sum(CF_GF(1,:)); CY_GF = sum(CF_GF(2,:)); CN_GF = sum(CF_GF(3,:));

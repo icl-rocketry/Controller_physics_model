@@ -1,4 +1,4 @@
-function [x_dot, x_add_dot] = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_body, F_aero_body, tau_aero_body, Isp, OF, g0)
+function [x_dot, x_add_dot_prop] = Get_state_derivative(t, x, R_BI, J, F_thrust_body, tau_thrust_body, F_aero_body, tau_aero_body, Isp, OF, g0)
 % Calculates state derivative vector given resultant forces, torques, mass and inertial moment
     
     % decompose state vector
@@ -33,8 +33,8 @@ function [x_dot, x_add_dot] = Get_state_derivative(t, x, R_BI, J, F_thrust_body,
     x_dot(11:13) = w_dot;
     x_dot(14) = m_dot;
 
-    % create and assemble additional derivative vector (when actuators are added they go here as well)
-    x_add_dot = zeros(2, 1);
-    x_add_dot(1) = m_dot_fuel;
-    x_add_dot(2) = m_dot_ox;
+    % create and assemble additional derivative vector for fuel compoents
+    x_add_dot_prop = zeros(2, 1);
+    x_add_dot_prop(1) = m_dot_fuel;
+    x_add_dot_prop(2) = m_dot_ox;
 end
