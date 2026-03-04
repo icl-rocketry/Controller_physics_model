@@ -21,7 +21,7 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, q_fs, x_cg, height_gridfin,
     
         % Use transport theorem to get fin velocity
         V_F_B = V_B + cross(w_B, r_gridfin);
-    
+        
         % Body -> Hinge rotation matrices
         RBH = [1, 0, 0; 0, cos(G_angle(idx)), -sin(G_angle(idx)); 0, sin(G_angle(idx)), cos(G_angle(idx))];
     
