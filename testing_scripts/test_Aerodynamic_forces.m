@@ -5,9 +5,9 @@ clc
 
 position = [0, 0, 5000];
 v_inertial = [0, 0, -150];  
-q = [0, 0, 0, 0];
+q = [0, 0.707, 0, -0.707];
 w_body = [0, 0, 0];  
-u_fins     = [0, 0, 0];  
+u_fins = [0, 0, 0];  
 mass = 1000;
 
 state = [position, v_inertial, q, w_body, mass]';
@@ -27,10 +27,6 @@ params.chord_gridfins = 0.8;
 R_BI = quat2rotm(q);
 v_body = transpose(R_BI) * v_inertial';
 
-% calculate alpha and beta (z and y)
-alpha = atan2(v_body(3), -v_body(1));
-beta = atan2(v_body(2), -v_body(1));
-
 %load tables
 aerosplinefits = LoadAeroTables();
 Tables = struct("aerosplinefits", aerosplinefits);
@@ -38,7 +34,7 @@ params.Tables = Tables;
 
 %% Plot
 
-[F, tau] = Aerodynamic_forces(state, u_fins, alpha, beta, x_cg, params);
+[F, tau] = Aerodynamic_forces(state, u_fins, x_cg, params);
 
 fprintf('\nF   = [%+.2f  %+.2f  %+.2f] N\n',   F(1),   F(2),   F(3));
 fprintf('tau = [%+.4f  %+.4f  %+.4f] N·m\n\n', tau(1), tau(2), tau(3));
