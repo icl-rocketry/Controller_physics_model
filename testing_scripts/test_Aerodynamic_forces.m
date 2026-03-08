@@ -4,22 +4,22 @@ clc
 %% Simulation Setup
 
 position = [0, 0, 5000];
-v_inertial = [0, 0, -150];  
-q = [0, 0.707, 0, -0.707];
-w_body = [0, 0, 0];  
-u_fins = [0, 0, 0];  
-mass = 1000;
+v_inertial = [0, 0, -200];
+q = [0, -0.707, 0, 0.707];
+w_body = [0, 0, 0];
+u_fins = [0, 0, 0];
+mass = 85;
 
 state = [position, v_inertial, q, w_body, mass]';
 
 %rocket parameters
-x_cg = -15; %from nose
-params.S_ref = 0.0314;
-params.L_ref = 30;
-params.R_rocket= 2;
-params.x_gridfin  = -7;
-params.S_ref_GF = 0.5;
-params.chord_gridfins = 0.8;
+x_cg = -2.7; %from nose
+params.L_ref = 5;
+params.R_rocket = 0.1;
+params.S_ref = pi * (params.R_rocket) ^ 2;
+params.x_gridfin = -1.2;
+params.S_ref_GF = 0.012;
+params.chord_gridfins = 0.03;
 
 %% Calculation
 
@@ -39,18 +39,21 @@ params.Tables = Tables;
 fprintf('\nF   = [%+.2f  %+.2f  %+.2f] N\n',   F(1),   F(2),   F(3));
 fprintf('tau = [%+.4f  %+.4f  %+.4f] N·m\n\n', tau(1), tau(2), tau(3));
 
-visualise(F, tau, params, x_cg);
+visualise(F, tau, params, x_cg, params.x_gridfin);
 
 
-function visualise(F, tau, params, x_cg)
+function visualise(F, tau, params, x_cg, x_gridfin)
 
     figure('Name', 'Visualisation', 'Color', 'w', 'Position', [100, 100, 900, 500]);
     clf; 
 
     subplot(1, 4, [1 2 3]); 
     hold on; grid on; axis equal; view(35, 22);
+    
+    % plot grid fin pos
+    scatter3(x_gridfin, 0, 0, 50, 'filled', 'MarkerFaceColor', 'b', 'DisplayName', 'Grid fin pos');
 
-    %to make scale of arrows reasonable
+    % to make scale of arrows reasonable
     maxlength = params.L_ref/2;
     scalefactor = maxlength/max(abs([F,tau]));
     
