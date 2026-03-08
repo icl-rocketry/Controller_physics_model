@@ -65,7 +65,7 @@ function [C_F, C_M] = grid_fin_aero_coeffs(V_B, w_B, q_fs, x_cg, height_gridfin,
         % get axial and transverse forces
         axial_dir = sign(U);
         F_axial = - D * axial_dir * cos(alpha_total) + L * axial_dir * sin(alpha_total);
-        F_transverse = - L * axial_dir * cos(alpha_total) - D * axial_dir * sin(alpha_total);
+        F_transverse = - L * cos(alpha_total) - D * sin(alpha_total);
 
         % decompose forces
         Fx = F_axial;

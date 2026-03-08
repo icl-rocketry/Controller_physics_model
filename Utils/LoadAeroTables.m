@@ -1,65 +1,66 @@
 function [aerosplinefits] = LoadAeroTables()
-    
+% Creates spline fits through data tables to make them C1 continuous
     % ROCKET
     static_table_raw = readtable("B0000.xlsx");
     dynamic_table_raw = readtable("xpitch_B0000.xlsx");
-
-    static_table_raw = static_table_raw{:,2:19};
+    static_table_raw = static_table_raw{:, 2:19};
     dynamic_table_raw = dynamic_table_raw{:, 2:19};
 
     % array definitions:
-    % xpitch: 
-    M_xpitch = dynamic_table_raw(:, 2);
-    alpha_xpitch = dynamic_table_raw(:, 3);
-    CA_xpitch = dynamic_table_raw(:, 4);
-    CN_xpitch = dynamic_table_raw(:,8);
-    CMy_xpitch = dynamic_table_raw(:,12);
+    % Dynamic derivatives 
+    M_dynamic = dynamic_table_raw(:, 1);
+    alpha_dynamic = dynamic_table_raw(:, 2);
+    CA_dynamic = dynamic_table_raw(:, 3);
+    CN_dynamic = dynamic_table_raw(:, 7);
+    CMy_dynamic = dynamic_table_raw(:, 11);
 
-    % non xpitch:
-    M_static = static_table_raw(:, 2);
-    alpha_static = static_table_raw(:, 3);
-    CA_static = static_table_raw(:, 4);
-    CN_static = static_table_raw(:,8);
-    CMy_static = static_table_raw(:,12);
+    % static derivatives
+    M_static = static_table_raw(:, 1);
+    alpha_static = static_table_raw(:, 2);
+    CA_static = static_table_raw(:, 3);
+    CN_static = static_table_raw(:, 7);
+    CMy_static = static_table_raw(:, 11);
 
-    % xpitch fits
-    x = [M_xpitch, alpha_xpitch];
-    CA_xpitch_spline = tpaps(x', CA_xpitch', 0.8);
-    CN_xpitch_spline = tpaps(x', CN_xpitch', 0.8);
-    CMy_xpitch_spline = tpaps(x', CMy_xpitch', 0.8);
+    % dynamics splines
+    x = [M_dynamic, alpha_dynamic];
+    CA_xpitch_spline = tpaps(x', CA_dynamic', 0.8);
+    CN_xpitch_spline = tpaps(x', CN_dynamic', 0.8);
+    CMy_xpitch_spline = tpaps(x', CMy_dynamic', 0.8);
 
-    % non pitch fits
+    % static splines
     x = [M_static, alpha_static];
     CA_static_spline = tpaps(x', CA_static', 0.8);
     CN_static_spline = tpaps(x', CN_static', 0.8);
     CMy_static_spline = tpaps(x', CMy_static', 0.8);
 
-    % to evaluate a particular value: fnval(CA_xpitch_spline, query_point),
-    % where query_point = [M, alpha]
-    % to plot: fnplt(CA_xpitch_spline)
-
-    % GRIDFINS
+    % gridfin tables
     CL_alpha_table = readmatrix("honeycomb-clalpha.xlsx");
     CD_alpha_table = readmatrix("honeycomb-cdalpha.xlsx");
     
-    %get rid of random values at the end
-    CL_alpha_table = CL_alpha_table(2:90, :);
+    % isolate alpha > 0 to allow mirroring
+    CL_positive = CL_alpha_table(CL_alpha_table(:,1) >= 0, :);
+    CD_positive = CD_alpha_table(CD_alpha_table(:,1) >= 0, :);
 
-    % 1D spline fits
-    % to calcuate value at a point: Clval = ppval(Clfit, alpha);
-    % do not exceed +- 50 degrees aoa
-
-    Clalphaextended = [-flip(CL_alpha_table(:,1)); CL_alpha_table(:,1)];
-    Clextended = [flip(CL_alpha_table(:,2)); CL_alpha_table(:,2)];
-
-    Cdalphaextended = [-flip(CD_alpha_table(:,1)); CD_alpha_table(:,1)];
-    Cdextended = [flip(CD_alpha_table(:,2)); CD_alpha_table(:,2)];
-
+    % create mirror
+    Clalpha_flip = -flip(CL_positive(2:end, 1));
+    Cdalpha_flip = -flip(CD_positive(2:end, 1));
+    
+    % add mirror onto original array
+    Clalphaextended = [Clalpha_flip; CL_positive(:,1)];
+    Cdalphaextended = [Cdalpha_flip; CD_positive(:,1)];
+    
+    % lift is an odd function so negate 
+    Clextended = [-flip(CL_positive(2:end, 2)); CL_positive(:,2)];
+    
+    % drag is an even function so leave as is
+    Cdextended = [flip(CD_positive(2:end, 2)); CD_positive(:,2)];
+    
+    % create spline fits through data
     CLfit_spline = spline(Clalphaextended, Clextended);
     CDfit_spline = spline(Cdalphaextended, Cdextended);
 
+    % create struct containing spline fits
     % [CA_xpitch_spline, CN_xpitch_spline, CMy_xpitch_spline, CA_static_spline, CN_static_spline, CMy_static_spline, CLfit, CDfit]
-
     aerosplinefits = struct("CA_dynamic", CA_xpitch_spline, ...
         "CN_dynamic", CN_xpitch_spline, ...
         "CM_pitch_dynamic", CMy_xpitch_spline, ...

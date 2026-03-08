@@ -13,7 +13,8 @@ function [C_X, C_Z, C_Y, C_l, C_m, C_n] = Aerodynamic_coeffs(state, V_B, flow_v,
     V_transverse = sqrt(V_B(2)^2 + V_B(3)^2);
     alpha_total_rad = atan2(V_transverse, V_axial);
     alpha_total = alpha_total_rad * (180 / pi);
-
+    
+    % numerical stability to avoid division by zero
     if alpha_total < 1e-6
         deg_ratio_alpha = 0;
         deg_ratio_beta = 0;
