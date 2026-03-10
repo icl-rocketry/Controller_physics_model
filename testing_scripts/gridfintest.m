@@ -162,7 +162,7 @@ function run_simulation(fig_h)
 
     q = 0.5 * 1.225 * norm(V_B) ^ 2;
 
-    [CF, CM] = grid_fin_aero_coeffs(V_B, w_B, x_cg, chord_gridfins, Sref, Sref_rocket, 10, R_gridfin, x_gridfin, [d1;d2;d3], 1.225, aerosplinefits);
+    [CF, CM] = grid_fin_aero_coeffs(V_B, w_B, q, x_cg, chord_gridfins, Sref, Sref_rocket, 10, R_gridfin, x_gridfin, [d1;d2;d3], 1.225, aerosplinefits);
     F1 = CF(:,1) .* (q * Sref_rocket);
     F2 = CF(:,2) .* (q * Sref_rocket);
     F3 = CF(:,3) .* (q * Sref_rocket);
@@ -181,7 +181,7 @@ function run_simulation(fig_h)
 
     % --- VISUALIZATION ---
     % Draw Rocket Body
-    [Xc, Yc, Zc] = cylinder(R_gridfin*0.8, 20);
+    [Xc, Yc, Zc] = cylinder(R_gridfin * 0.8, 20);
     Zc = Zc * 3 - 2; 
     surf(ax, Zc, Yc, Xc, 'FaceColor', [0.8 0.8 0.8], 'FaceAlpha', 0.3, 'EdgeColor', 'none');
     
