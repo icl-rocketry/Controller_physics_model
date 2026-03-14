@@ -3,16 +3,17 @@ clc
 
 %% Simulation Setup
 
-position = [0, 0, 5000];
-v_inertial = [0, 0, -200];
+position = [0, 0, 3000];
+v_inertial = [0, 0, -30];
 q = [0, -0.707, 0, 0.707];
 w_body = [0, 0, 0];
-u_fins = [0, 0, 0];
+u_fins = [8, 8, 8]; % data is dodgy past 8 degrees
 mass = 85;
 
 state = [position, v_inertial, q, w_body, mass]';
 
-%rocket parameters
+% rocket parameters
+% Note for ben: origin defined from the nose
 x_cg = -2.7; %from nose
 params.L_ref = 5;
 params.R_rocket = 0.1;
@@ -20,8 +21,6 @@ params.S_ref = pi * (params.R_rocket) ^ 2;
 params.x_gridfin = -1.2;
 params.S_ref_GF = 0.012;
 params.chord_gridfins = 0.03;
-
-%% Calculation
 
 %find alpha and beta, done in dynamics_fn
 R_BI = quat2rotm(q);
@@ -31,8 +30,6 @@ v_body = transpose(R_BI) * v_inertial';
 aerosplinefits = LoadAeroTables();
 Tables = struct("aerosplinefits", aerosplinefits);
 params.Tables = Tables;
-
-%% Plot
 
 [F, tau] = Aerodynamic_forces(state, u_fins, x_cg, params);
 

@@ -2,18 +2,14 @@
 % Clears workspace to ensure fresh start
 clear; clc; close all;
 
-% =========================================================================
-% 1. SETUP FIGURE & UI
-% =========================================================================
+% plot
 f = figure('Name', 'Grid Fin Logic Tester', 'Position', [100, 100, 1200, 700], 'Color', 'w');
-
-% Create Axes
 ax = axes('Parent', f, 'Position', [0.35, 0.1, 0.6, 0.8]);
 axis(ax, 'equal'); grid(ax, 'on'); hold(ax, 'on'); view(ax, 135, 30);
 xlabel(ax, 'X (Axial)'); ylabel(ax, 'Y (Lateral)'); zlabel(ax, 'Z (Vertical)');
 title(ax, 'Body Frame Forces (Green) & Moments');
 
-% UI Controls (Sliders)
+% sliders
 uicontrol('Style','text','Pos',[20 650 250 20],'String','Velocity Vx (m/s)','HorizontalAlignment','left');
 h_Vx = uicontrol('Style','slider','Pos',[20 630 250 20],'Min',10,'Max',300,'Val',100);
 
@@ -32,72 +28,8 @@ h_d3 = uicontrol('Style','slider','Pos',[20 390 250 20],'Min',-0.5,'Max',0.5,'Va
 % Text Output
 h_out = uicontrol('Style','text','Pos',[20 20 300 350],'String','Results...','HorizontalAlignment','left', 'FontName', 'Courier');
 
-% =========================================================================
-% 2. DATA PREPARATION
-% =========================================================================
-% % Create dummy spline data so your code runs
-% alpha_range = linspace(-pi/2, pi/2, 100);
-% CL_data = 1.5 * sin(2*alpha_range); 
-% CD_data = 0.5 + 1.0 * sin(alpha_range).^2;
-% aerosplinefits.CLfit = spline(alpha_range, CL_data);
-% aerosplinefits.CDfit = spline(alpha_range, CD_data);
-% 
-% % Bundle everything into a structure to pass to the function
-% data.ax = ax;
-% data.h_Vx = h_Vx;
-% data.h_P = h_P;
-% data.h_d1 = h_d1;
-% data.h_d2 = h_d2;
-% data.h_d3 = h_d3;
-% data.h_out = h_out;
-% data.aerosplinefits = aerosplinefits;
-
-%GRIDFINS
-    CL_raw = readmatrix("honeycomb-clalpha.xlsx");
-    CD_raw = readmatrix("honeycomb-cdalpha.xlsx");
-    
-    % sort data
-    [~, sortIdxL] = sort(CL_raw(:,1));
-    CL_sorted = CL_raw(sortIdxL, :);
-    
-    [~, sortIdxD] = sort(CD_raw(:,1));
-    CD_sorted = CD_raw(sortIdxD, :);
-
-    % get positive side
-    pos_mask_L = CL_sorted(:,1) >= 0;
-    pos_alpha_L = CL_sorted(pos_mask_L, 1);
-    pos_CL      = CL_sorted(pos_mask_L, 2);
-    
-    pos_mask_D = CD_sorted(:,1) >= 0;
-    pos_alpha_D = CD_sorted(pos_mask_D, 1);
-    pos_CD      = CD_sorted(pos_mask_D, 2);
-
-    %shift the curve down by bias amount
-    lift_offset = pos_CL(1); 
-    pos_CL = pos_CL - lift_offset; 
-    
-    % Force exact [0,0] for the first point to be absolutely safe
-    pos_alpha_L(1) = 0; 
-    pos_CL(1)      = 0;
-    
-    % For Drag, ensure Alpha starts at 0
-    pos_alpha_D(1) = 0;
-
-    % mirror
-    alpha_L_full = [-flip(pos_alpha_L(2:end)); pos_alpha_L];
-    CL_full      = [-flip(pos_CL(2:end));      pos_CL];
-    
-    % Drag is even
-    alpha_D_full = [-flip(pos_alpha_D(2:end)); pos_alpha_D];
-    CD_full      = [flip(pos_CD(2:end));       pos_CD];
-
-    % get splines
-    CLfit_spline = spline(alpha_L_full, CL_full);
-    CDfit_spline = spline(alpha_D_full, CD_full);
-
-    aerosplinefits = struct("CLfit", CLfit_spline, ...
-        "CDfit", CDfit_spline);  
-
+% Grid fin data loading
+aerosplinefits = LoadAeroTables();
 
 % Bundle all UI handles and Data into 'data' struct
 data.ax = ax;
@@ -122,9 +54,6 @@ set(h_d3, 'Callback', @(s,e) run_simulation(f));
 % Initial Run
 run_simulation(f);
 
-% =========================================================================
-% 3. LOCAL CALCULATION FUNCTION
-% =========================================================================
 function run_simulation(fig_h)
     % Retrieve all our handles and data safely
     data = guidata(fig_h);
@@ -142,30 +71,29 @@ function run_simulation(fig_h)
     d3 = data.h_d3.Value;
 
     % Define Constants required by your code block
-    chord_gridfins = -0.1; % m
-    Sref = 0.02; % m^2
-    x_gridfin = -0.5; % m
-    R_gridfin = 0.15; % m
-    x_cg = -2;
+    chord_gridfins = 0.03; % m
+    R_gridfin = 0.1; % m
+    Sref = pi * (R_gridfin ^ 2); % m^2
+    Sref_gridfin = 0.1;
+    x_gridfin = -1.2; % m
+    x_cg = -2.7;
     Sref_rocket = 0.3;
+    Lref_rocket = 5;
     
-    % Initialize Coeffs
-    C_A = 0; C_Y = 0; C_N = 0;
-    C_l = 0; C_m = 0; C_n = 0;
+    % simulate
+    V_B = [vx; 0; 0];
+    w_B = [p; 0; 0];
+    
+    [rho, ~, ~] = standard_atm_function(3000);
+    q = 0.5 * rho * norm(V_B) ^ 2;
 
-    % ---------------------------------------------------------------------
-    % START USER CODE BLOCK
-    % ---------------------------------------------------------------------
-    %%grifins:
-    V_B = [vx;0;0];
-    w_B = [p;0;0];
+    [CF, CM] = grid_fin_aero_coeffs(V_B, ...
+        w_B, q, x_cg, chord_gridfins, Sref_gridfin, ...
+        Sref_rocket, Lref_rocket, R_gridfin, x_gridfin, ...
+        [d1;d2;d3], rho, aerosplinefits);
 
-    q = 0.5 * 1.225 * norm(V_B) ^ 2;
-
-    [CF, CM] = grid_fin_aero_coeffs(V_B, w_B, q, x_cg, chord_gridfins, Sref, Sref_rocket, 10, R_gridfin, x_gridfin, [d1;d2;d3], 1.225, aerosplinefits);
-    F1 = CF(:,1) .* (q * Sref_rocket);
-    F2 = CF(:,2) .* (q * Sref_rocket);
-    F3 = CF(:,3) .* (q * Sref_rocket);
+    F1 = sum(CF(1,:)); F2 = sum(CF(2,:)); F3 = sum(CF(3,:));
+    M1 = sum(CM(1,:)); M2 = sum(CM(2,:)); M3 = sum(CM(3,:));
 
     G_angle_1 = 0.0;
     G_angle_2 = (2/3) * pi;
@@ -175,35 +103,33 @@ function run_simulation(fig_h)
     r_gridfin_1 = [x_gridfin - x_cg; R_gridfin * sin(G_angle_1); R_gridfin * cos(G_angle_1)];
     r_gridfin_2 = [x_gridfin - x_cg; R_gridfin * sin(G_angle_2); R_gridfin * cos(G_angle_2)];
     r_gridfin_3 = [x_gridfin - x_cg; R_gridfin * sin(G_angle_3); R_gridfin * cos(G_angle_3)];
-    % ---------------------------------------------------------------------
-    % END USER CODE BLOCK
-    % ---------------------------------------------------------------------
 
-    % --- VISUALIZATION ---
     % Draw Rocket Body
-    [Xc, Yc, Zc] = cylinder(R_gridfin * 0.8, 20);
+    [Xc, Yc, Zc] = cylinder(R_gridfin, 50);
     Zc = Zc * 3 - 2; 
     surf(ax, Zc, Yc, Xc, 'FaceColor', [0.8 0.8 0.8], 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-    
     scale_fac = 0.01; 
     
     % Draw Vectors
+    % Bundle position vectors into a 3x3 matrix for clean looping
+    r_gridfins = [r_gridfin_1, r_gridfin_2, r_gridfin_3];
+    
     plot3(ax, r_gridfin_1(1), r_gridfin_1(2), r_gridfin_1(3), 'ro', 'MarkerFaceColor','r');
     quiver3(ax, r_gridfin_1(1), r_gridfin_1(2), r_gridfin_1(3), ...
-        F1(1)*scale_fac, F1(2)*scale_fac, F1(3)*scale_fac, ...
+        CF(1, 1)*scale_fac, CF(2, 1)*scale_fac, CF(3, 1)*scale_fac, ...
         'Color', 'g', 'LineWidth', 2, 'MaxHeadSize', 0.5, 'AutoScale','off');
     
     plot3(ax, r_gridfin_2(1), r_gridfin_2(2), r_gridfin_2(3), 'ro', 'MarkerFaceColor','r');
     quiver3(ax, r_gridfin_2(1), r_gridfin_2(2), r_gridfin_2(3), ...
-        F2(1)*scale_fac, F2(2)*scale_fac, F2(3)*scale_fac, ...
+        CF(1, 2)*scale_fac, CF(2, 2)*scale_fac, CF(3, 2)*scale_fac, ...
         'Color', 'g', 'LineWidth', 2, 'MaxHeadSize', 0.5, 'AutoScale','off');
         
     plot3(ax, r_gridfin_3(1), r_gridfin_3(2), r_gridfin_3(3), 'ro', 'MarkerFaceColor','r');
     quiver3(ax, r_gridfin_3(1), r_gridfin_3(2), r_gridfin_3(3), ...
-        F3(1)*scale_fac, F3(2)*scale_fac, F3(3)*scale_fac, ...
+        CF(1, 3)*scale_fac, CF(2, 3)*scale_fac, CF(3, 3)*scale_fac, ...
         'Color', 'g', 'LineWidth', 2, 'MaxHeadSize', 0.5, 'AutoScale','off');
 
-    % Update Text
+    % Update Text (Also corrected to reflect proper columns)
     res_str = sprintf([...
         'INPUTS:\n' ...
         'Vx: %.1f m/s\n' ...
@@ -214,9 +140,9 @@ function run_simulation(fig_h)
         'F2: [%.1f, %.1f, %.1f]\n' ...
         'F3: [%.1f, %.1f, %.1f]\n\n'], ...
         vx, p, d1, d2, d3, ...
-        F1(1), F1(2), F1(3), ...
-        F2(1), F2(2), F2(3), ...
-        F3(1), F3(2), F3(3));
+        CF(1, 1), CF(2, 1), CF(3, 1), ...
+        CF(1, 2), CF(2, 2), CF(3, 2), ...
+        CF(1, 3), CF(2, 3), CF(3, 3));
     
     set(data.h_out, 'String', res_str);
 end
