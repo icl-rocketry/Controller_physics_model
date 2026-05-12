@@ -11,13 +11,11 @@ function [actuator_state_dot] = Engine_gimbal_dynamics_fn(actuator_state, u, sys
     theta_y = actuator_state(1);
     theta_z = actuator_state(2);
     
-    % System travels on linear path to target so acceleration vector points this way
+    % System travels on linear path to targ
     travel_unit_vec = [uy - theta_y; uz - theta_z];
     acceleration_vector = acceleration_rate .* travel_unit_vec;
 
-    % Get new actuation state derivative
-    actuator_state_dot = [actuator_state(3); 
-                          actuator_state(4); 
-                          acceleration_vector(1); 
-                          acceleration_vector(2)];
+    % Get 
+    actuator_state_dot = [actuator_state(3)     ; actuator_state(4); 
+                          acceleration_vector(1); acceleration_vector(2)];
 end
