@@ -14,17 +14,24 @@ function [x_dot, x_add_dot] = dynamics_fn(t, x, x_add, u, rocket_config)
     % Initialise additonal state derivative vector
     x_add_dot = zeros(size(x_add));
 
-    % grid fin actuator model to get state derivative
+    % Grid fin actuator model to get state derivative
+    % x_add_GF = [theta_m, theta_m_dot, theta_L, theta_L_dot]
     for i = 1:3
-        actuator_state = x_add(2 + i);
+        actuator_state = x_add((2 + i) : (2 + 4 * i));
         x_add_dot_GF = GF_actuator_dynamic_fn(actuator_state, ...
             u(i), rocket_config);
-        x_add_dot(2 + i) = x_add_dot_GF;
+        x_add_dot((2 + 4 * (i - 1)) : (2 + 4 * i)) = x_add_dot_GF;
     end
 
     % Calculate aerodynamic force and torque in body axes
     [F_aero_body, tau_aero_body] = Aerodynamic_forces(x, ...
         u(1:3), x_cg, rocket_config);
+
+    % Calculate engine gimbal rate
+    % gimbal_state = [alpha_y, alpha_y_dot, alpha_z, alpha_z_dot]
+    gimbal_state = x_add(15:18);
+    [x_add_dot_gimbal] = Engine_gimbal_dynamics_fn(gimbal_state, ...
+        u(4:5), rocket_config);
     
     % Calculate force and torque from engine in body axes
     [F_thrust_body, tau_thrust_body, Isp] = Engine_Model(); % need to finish
@@ -33,6 +40,8 @@ function [x_dot, x_add_dot] = dynamics_fn(t, x, x_add, u, rocket_config)
     [x_dot, x_add_dot_fuel] = Get_state_derivative(t, ...
         x, R_BI, J, F_thrust_body, tau_thrust_body, F_aero_body, ...
         tau_aero_body, Isp, rocket_config.OF, rocket_config.g0);
-
+    
+    % construct additional state derivative vector
     x_add_dot(1:2) = x_add_dot_fuel(:); 
+    x_add_dot(3:6) = x_add_dot_gimbal(:);
 end
