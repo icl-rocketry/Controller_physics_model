@@ -1,14 +1,14 @@
-function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, x_cg, params)
+function [F_aero_body, tau_aero_body] = Aerodynamic_forces(state, u_fins, x_cg, config)
 % calculates aerodynamic forces and torques acting on the rocket in body axes
     
     % extract important values
-    S_ref = params.S_ref; 
-    L_ref = params.L_ref;
-    x_gridfin = params.x_gridfin;
-    S_ref_GF = params.S_ref_GF;
-    R_rocket = params.R_rocket;
-    chord_gridfins = params.chord_gridfins;
-    Tables = params.Tables;
+    S_ref = config.S_ref; 
+    L_ref = config.L_ref;
+    x_gridfin = config.x_gridfin;
+    S_ref_GF = config.S_ref_GF;
+    R_rocket = config.R_rocket;
+    chord_gridfins = config.chord_gridfins;
+    Tables = config.Tables;
 
     % Calculate body to inertial axes rotation vector
     R_BI = quat2rotm(state(7:10));

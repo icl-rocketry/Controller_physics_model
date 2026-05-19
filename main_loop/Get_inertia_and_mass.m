@@ -1,5 +1,17 @@
-function [r_cg, J] = Get_inertia_and_mass(m_current, m_fuel, m_ox, r_dry, m_dry, R_ox, R_f, m_ox0, m_fuel0, L0_ox, L0_f, Base_ox, Base_f, J_dry)
+function [r_cg, J] = Get_inertia_and_mass(m_current, m_fuel, m_ox, config)
 % Obtains the new mass the new centre of gravity and the new inertia tensor.
+    % Constants
+    r_dry = config.r_dry;
+    m_dry = config.m_dry; 
+    R_ox = config.R_ox;
+    R_f = config.R_f;
+    m_ox0 = config.m_ox0; 
+    m_fuel0 = config.m_fuel0; 
+    L0_ox = config.L0_ox; 
+    L0_f = config.L0_f; 
+    Base_ox = config.Base_ox; 
+    Base_f = config.Base_f; 
+    J_dry = config.J_dry;
 
     % get COM of rocket components
     L_f = L0_f * (m_fuel / m_fuel0);
