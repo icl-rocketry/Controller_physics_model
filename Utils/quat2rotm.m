@@ -4,7 +4,7 @@ function R_BI = quat2rotm(q)
     % extract quaternion components
     qx = q(1); 
     qy = q(2); 
-    qz = q(3); 
+    qz = q(3);
     qw = q(4);
     
     % calculate rotational matrix for body to inertial axes
@@ -12,4 +12,3 @@ function R_BI = quat2rotm(q)
             2 * (qx * qy + qz * qw), 1 - 2 * ((qx ^ 2) + (qz ^ 2)), 2 * (qy * qz - qx * qw);
             2 * (qx * qz - qy * qw), 2 * (qy * qz + qx * qw), 1 - 2 * ((qx ^ 2) + (qy ^ 2))];
 end
-
