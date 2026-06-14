@@ -1,0 +1,21 @@
+function [valve_states_dot] = valve_opening_model(valve_angle_cmd, valve_states, config)
+% Computes the rate of change of the valve state to rotate to new commanded position
+% Assumes that a rate matching system is used for the 2 E-regs to prevent lead lag that will change OF ratios
+% Only fuel valve angle is solved for as a mapping between fuel angle and ox angle is used
+    % Extract valve states
+    alpha = valve_states(1);
+    alpha_dot = valve_states(2);
+    
+    % Use second order actuator approximation to obtain ideal accelerations
+    alpha_ddot   = ((config.valve_angular_vel ^ 2) * (valve_angle_cmd - alpha)) - ...
+                      (2 * config.valve_damping * config.valve_angular_vel * alpha_dot);
+    
+    % Valve slew rate limiting by zeroing acceleration
+    if (alpha_dot >= config.max_slew_rate && alpha_ddot > 0) || ...
+       (alpha_dot <= -config.max_slew_rate && alpha_ddot < 0)
+        alpha_ddot = 0;
+    end
+    
+    % Create derivative vector
+    valve_states_dot = [alpha_dot; alpha_ddot];
+end
