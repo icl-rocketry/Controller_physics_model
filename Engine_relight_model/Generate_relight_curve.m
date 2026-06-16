@@ -12,28 +12,43 @@ L_star = 0.75;
 c_star_eff = 0.959;
 c_star_ideal = 987;
 c_star = c_star_eff * c_star_ideal;
-P_steady = 500000; % target stable pressure
+P_steady = 400000; % target stable pressure
+P_tank = 1600000;
 Pa = 100000;
-tau = L_star / (c_star * Gamma ^ 2);
 Ae = 6463.92 / (1000 ^ 2);
 At = 1520.53 / (1000 ^ 2);
 
+valve_nf = 100;
+valve_dr = 1.0;
+
 % Create expected pressure curve with approximation
 % Assume instanteneous combustion
-step = 0;
+C_thermo = (c_star^2) * (Gamma^2) / (L_star * At);
+K_actual = (P_steady * At / c_star) / sqrt(P_tank - P_steady);
 Pc(1) = 0;
-while abs(P_steady - Pc(step + 1)) > P_tolerance
+xv(1) = 0;
+xv_dot(1) = 0;
+step = 1;
+
+while Pc(step) < (P_steady - 100)
+    xv_ddot = (valve_nf ^ 2) * (1.0 - xv(step)) - 2 * valve_dr * valve_nf * xv_dot(step);
+    xv_dot(step + 1) = xv_dot(step) + xv_ddot * dt;
+    xv(step + 1) = xv(step) + xv_dot(step) * dt;
+
+    mdot_in = K_actual * xv(step) * sqrt(max(0, P_tank - Pc(step)));
+    mdot_out = Pc(step) * At / c_star;
+    dPcdt = C_thermo * (mdot_in - mdot_out);
+    Pc(step + 1) = Pc(step) + dPcdt * dt;
+
     step = step + 1;
-    t = step * dt;
-    Pc(step + 1) = P_steady * (1 - exp(- t / tau));
 end
 
-t_series = (0:step) * dt;
+t_series = (0:step-1) * dt;
 figure
 plot(t_series, Pc)
 
 % Create expected thrust relation
-Kp = ((1 + (gamma - 1) / 2) * Me ^ 2) ^ (gamma / (gamma - 1));
+Kp = (1 + ((gamma - 1) / 2) * Me ^ 2) ^ (gamma / (gamma - 1));
 crit_ratio = ((gamma + 1) / 2) ^ (gamma / (gamma - 1));
 Pc_choke = 0.4 * Pa * crit_ratio;
 

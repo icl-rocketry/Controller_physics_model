@@ -7,7 +7,7 @@ function [valve_states_dot] = valve_opening_model(valve_angle_cmd, valve_states,
     alpha_dot = valve_states(2);
     
     % Use second order actuator approximation to obtain ideal accelerations
-    alpha_ddot   = ((config.valve_angular_vel ^ 2) * (valve_angle_cmd - alpha)) - ...
+    alpha_ddot = ((config.valve_angular_vel ^ 2) * (valve_angle_cmd - alpha)) - ...
                       (2 * config.valve_damping * config.valve_angular_vel * alpha_dot);
     
     % Valve slew rate limiting by zeroing acceleration
