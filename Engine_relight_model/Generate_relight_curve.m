@@ -17,6 +17,7 @@ P_tank = 1600000;
 Pa = 100000;
 Ae = 6463.92 / (1000 ^ 2);
 At = 1520.53 / (1000 ^ 2);
+OF = 1.4;
 
 valve_nf = 100;
 valve_dr = 1.0;
@@ -26,6 +27,8 @@ valve_dr = 1.0;
 C_thermo = (c_star^2) * (Gamma^2) / (L_star * At);
 K_actual = (P_steady * At / c_star) / sqrt(P_tank - P_steady);
 Pc(1) = 0;
+mdot_ox(1) = 0;
+mdot_fuel(1) = 0;
 xv(1) = 0;
 xv_dot(1) = 0;
 step = 1;
@@ -39,13 +42,16 @@ while Pc(step) < (P_steady - 100)
     mdot_out = Pc(step) * At / c_star;
     dPcdt = C_thermo * (mdot_in - mdot_out);
     Pc(step + 1) = Pc(step) + dPcdt * dt;
+    
+    mdot_fuel(step) = mdot_in / (1 + OF);
+    mdot_ox(step) = mdot_in / (1 + (1 / OF));
 
     step = step + 1;
 end
 
-t_series = (0:step-1) * dt;
-figure
-plot(t_series, Pc)
+mdot_in(step) = K_actual * xv(step) * sqrt(max(0, P_tank - Pc(step)));
+mdot_fuel(step) = mdot_in(step) / (1 + OF);
+mdot_ox(step) = mdot_in(step) / (1 + (1 / OF));
 
 % Create expected thrust relation
 Kp = (1 + ((gamma - 1) / 2) * Me ^ 2) ^ (gamma / (gamma - 1));
@@ -64,6 +70,26 @@ for i = 1:length(Pc)
         F(i) = Gamma * At * Pc(i) * (sqrt((2 * gamma / (gamma - 1)) * (1 - (1 / Kp) ^ ((gamma - 1) / gamma)))) + ((Pc(i) / Kp) - Pa) * Ae;
     end
 end
+
+% Create Time series
+t_series = (0:step-1) * dt;
+
+% Export data
+save_q = input("Save the data? (0 = no, 1 = yes) ");
+if save_q
+    var_names = ["t" "T" "Pc" "mdot_fuel" "mdot_ox" "xv" "xv_dot"];
+    export_table = table(t_series', F', Pc', mdot_fuel', mdot_ox', xv', xv_dot', VariableNames=var_names);
+    writetable(export_table, "relight_data.csv")
+end
+
+figure
+plot(t_series, Pc)
+
+figure
+hold on
+plot(t_series, mdot_ox)
+plot(t_series, mdot_fuel)
+hold off
 
 figure
 plot(t_series, F)
